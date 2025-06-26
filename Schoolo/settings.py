@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -48,6 +50,10 @@ INSTALLED_APPS = [
     'communication',
     'attendance',
     'contents',
+    'enrollment',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -82,6 +88,50 @@ TEMPLATES = [
     },
 ]
 
+TRACCAR_SMS_API_KEY = "dUttaGNDTFaxX3Td6iGnpp:APA91bEsk8E7oyvFQiXHh7Ew3kQy0OR_rQCWMVTdNFJEWk0LoDPJSbPHmGkKTrvlmiE6wuwrJSJuxBPr4HU2Rdm9X41w6G0EuTQZdLc0AVQpJdfiS0g53Rk"  # التوكن من تطبيق Traccar
+TRACCAR_SMS_URL = "https://www.traccar.org/sms/"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication', # استخدم JWTAuthentication هنا
+        'rest_framework.authentication.SessionAuthentication', # اختياري: إذا كنت تستخدم الجلسات أيضاً
+        'rest_framework.authentication.BasicAuthentication',    # اختياري: إذا كنت تستخدم Basic Auth
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated', # افتراضي: يتطلب مصادقة لكل الـ endpoints
+    ),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),  # صلاحية توكن الوصول (Access Token)
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),     # صلاحية توكن التحديث (Refresh Token)
+    "ROTATE_REFRESH_TOKENS": False,                  # هل يتم إنشاء Refresh Token جديد عند التحديث؟
+    "BLACKLIST_AFTER_ROTATION": False,               # هل يتم حظر Refresh Token القديم بعد التحديث؟
+    "UPDATE_LAST_LOGIN": True,                       # هل يتم تحديث حقل last_login للمستخدم عند كل مصادقة؟
+
+    "ALGORITHM": "HS256",                            # خوارزمية التشفير
+    "SIGNING_KEY": SECRET_KEY,                       # مفتاح التشفير (استخدم SECRET_KEY لمشروعك)
+    "VERIFYING_KEY": None,
+    "AUDIENCE": None,
+    "ISSUER": None,
+    "JWK_URL": None,
+    "LEEWAY": 0,
+
+    "AUTH_HEADER_TYPES": ("Bearer",),                # نوع الـ Header الذي سيرسل فيه التوكن (مثال: Authorization: Bearer <token>)
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",                           # الحقل الذي يمثل معرف المستخدم في الـ User model
+    "USER_ID_CLAIM": "user_id",                      # الاسم الذي سيظهر به معرف المستخدم في الـ Payload
+    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_TYPE_CLAIM": "token_type",
+    "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
+
+    "JTI_CLAIM": "jti",
+
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+}
 WSGI_APPLICATION = 'Schoolo.wsgi.application'
 
 
@@ -91,9 +141,9 @@ WSGI_APPLICATION = 'Schoolo.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'schoolo',
-        'USER': 'root',
-        'PASSWORD': 'kenan777',
+        'NAME': 'schoolo3',  
+        'USER': 'nouran',  
+        'PASSWORD': 'nourankandar',  
         'HOST': 'localhost',          
         'PORT': '3306',   
 
@@ -146,3 +196,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    
+}

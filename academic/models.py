@@ -4,23 +4,10 @@ from accounts.models import AutoCreateAndAutoUpdateTimeStampedModel # استير
 import datetime
 
 class AcademicYear(AutoCreateAndAutoUpdateTimeStampedModel):
-    name = models.CharField(
-        max_length=50,
-        unique=True,
-        verbose_name=_("اسم العام الدراسي"),
-        help_text=_("مثال: 2024-2025")
-    )
-    start_date = models.DateField(
-        verbose_name=_("تاريخ البدء")
-    )
-    end_date = models.DateField(
-        verbose_name=_("تاريخ الانتهاء")
-    )
-    is_current = models.BooleanField(
-        default=False,
-        verbose_name=_("هل هو العام الحالي؟"),
-        help_text=_("يجب أن يكون عام دراسي واحد فقط هو الحالي في أي وقت.")
-    )
+    name = models.CharField(max_length=50,unique=True,verbose_name=_("اسم العام الدراسي"))
+    start_date = models.DateField(verbose_name=_("تاريخ البدء"))
+    end_date = models.DateField(verbose_name=_("تاريخ الانتهاء"))
+    is_current = models.BooleanField(default=False,verbose_name=_("هل هو العام الحالي؟"))
 
     class Meta:
         verbose_name = _("عام دراسي")
@@ -37,28 +24,11 @@ class AcademicYear(AutoCreateAndAutoUpdateTimeStampedModel):
 
 
 class AcademicTerm(AutoCreateAndAutoUpdateTimeStampedModel):
-    academic_year = models.ForeignKey(
-        AcademicYear,
-        on_delete=models.CASCADE,
-        related_name='academic_terms', # اسم عكسي للوصول من AcademicYear إلى AcademicTerm
-        verbose_name=_("العام الدراسي")
-    )
-    name = models.CharField(
-        max_length=100,
-        verbose_name=_("اسم الفصل الدراسي"),
-        help_text=_("مثال: الفصل الأول، الفصل الثاني، الفصل الصيفي")
-    )
-    start_date = models.DateField(
-        verbose_name=_("تاريخ البدء")
-    )
-    end_date = models.DateField(
-        verbose_name=_("تاريخ الانتهاء")
-    )
-    is_current = models.BooleanField(
-        default=False,
-        verbose_name=_("هل هو الفصل الحالي؟"),
-        help_text=_("يجب أن يكون فصل دراسي واحد فقط هو الحالي لكل عام دراسي محدد.")
-    )
+    academic_year = models.ForeignKey(AcademicYear,on_delete=models.CASCADE,related_name='academic_terms')
+    name = models.CharField(max_length=100,verbose_name=_("اسم الفصل الدراسي"),)
+    start_date = models.DateField(verbose_name=_("تاريخ البدء"))
+    end_date = models.DateField(verbose_name=_("تاريخ الانتهاء"))
+    is_current = models.BooleanField(default=False,verbose_name=_("هل هو الفصل الحالي؟"))
 
     class Meta:
         verbose_name = _("فصل دراسي")

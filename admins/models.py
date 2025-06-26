@@ -25,20 +25,7 @@ class Admin(AutoCreateAndAutoUpdateTimeStampedModel):
     def __str__(self):
         return self.user.get_full_name() or self.user.phone_number
     
-    groups = models.ManyToManyField(
-        'auth.Group',
-        blank=True,
-        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
-        related_name='accounts_user_set', # <-- أضف هذا الاسم الفريد
-        related_query_name='user',
-    )
-    user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        blank=True,
-        help_text='Specific permissions for this user.',
-        related_name='accounts_user_permissions_set', # <-- أضف هذا الاسم الفريد
-        related_query_name='user',
-    )
+    
 
     def __str__(self):
         return self.username

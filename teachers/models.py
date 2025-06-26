@@ -30,9 +30,6 @@ class Teacher(AutoCreateAndAutoUpdateTimeStampedModel):
         return self.user.get_full_name() or self.user.phone_number
     
 
-
-
-
 class TeacherAvailability(AutoCreateAndAutoUpdateTimeStampedModel):
     DAY_CHOICES = [
         (1, _('الاثنين')),

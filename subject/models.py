@@ -40,8 +40,6 @@ class Subject(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("نوع المسار"),
         help_text=_("نوع المسار إذا كانت المادة خاصة بمسار معين (علمي/أدبي).")
     )
-
-    
     name = models.CharField(
         max_length=150,
         verbose_name=_("اسم المادة")
