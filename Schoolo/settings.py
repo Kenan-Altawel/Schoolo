@@ -141,9 +141,9 @@ WSGI_APPLICATION = 'Schoolo.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'schoolo3',  
-        'USER': 'nouran',  
-        'PASSWORD': 'nourankandar',  
+        'NAME': 'schoolo',
+        'USER': 'root',
+        'PASSWORD': 'kenan777',
         'HOST': 'localhost',          
         'PORT': '3306',   
 
