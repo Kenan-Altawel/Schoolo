@@ -8,7 +8,7 @@ from .models import Subject, SectionSubjectRequirement
 from .serializers import SubjectSerializer, SectionSubjectRequirementSerializer
 from classes.models import Class, Section
 from django.db import transaction
-from django.db.models import Q  # لاستخدام الاستعلامات المعقدة
+from django.db.models import Q
 
 
 class SubjectViewSet(viewsets.ModelViewSet):
@@ -24,22 +24,17 @@ class SubjectViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         with transaction.atomic():
             subject_instance = serializer.save()
-            # في التحديث، من المنطقي حذف الروابط القديمة وإعادة إنشائها بناءً على العلاقات الجديدة
             SectionSubjectRequirement.objects.filter(subject=subject_instance).delete()
             self._create_section_subject_requirements(subject_instance)
 
     def _create_section_subject_requirements(self, subject_instance):
-        """
-        دالة مساعدة لإنشاء سجلات SectionSubjectRequirement بناءً على
-        روابط المادة (class_obj، section، stream_type) بعد إنشاء/تحديث المادة.
-        تتعامل مع جميع السيناريوهات المطلوبة.
-        """
         weekly_lessons = subject_instance.default_weekly_lessons
 
-        # إذا تم تحديد شعبة محددة للمادة، فالربط يكون لتلك الشعبة فقط.
+        # 1. الأولوية للربط بشعبة محددة:
+        # هذا الجزء سينفذ إذا لم يتم اعتراضه بواسطة validation السيريالايزر الجديد
+        # (أي أن المادة لم تكن "عامة" وتم ربطها بشعبة محددة، وهذا لن يحدث الآن).
         if subject_instance.section:
             section = subject_instance.section
-            # التأكد من عدم وجود SSR مكرر (رغم أن unique_together في الموديل يمنعه)
             if not SectionSubjectRequirement.objects.filter(section=section, subject=subject_instance).exists():
                 SectionSubjectRequirement.objects.create(
                     section=section,
@@ -51,32 +46,29 @@ class SubjectViewSet(viewsets.ModelViewSet):
             else:
                 print(
                     f"SSR already exists for specific section {section.name} and subject '{subject_instance.name}'. Skipping creation.")
-            return  # انتهينا من الربط إذا كانت هناك شعبة محددة
+            return  # إذا كانت المادة مرتبطة بشعبة محددة، ننتهي من الدالة هنا.
 
-        # إذا لم يتم تحديد شعبة محددة، فالربط يكون لصف كامل (مع أو بدون stream_type)
+        # 2. الربط لصف كامل (ينفذ هذا الجزء فقط إذا لم يتم تحديد شعبة محددة للمادة).
         if subject_instance.class_obj:
             sections_to_link = Section.objects.filter(class_obj=subject_instance.class_obj)
 
-            # إذا تم تحديد stream_type للمادة: اربط فقط بالشعب ذات stream_type المطابق.
-            if subject_instance.stream_type:
+            # **تعديل:** تعريف "المادة العامة للصف" يشمل stream_type=None أو 'General'
+            is_subject_general_for_class = (subject_instance.stream_type is None) or (
+                        subject_instance.stream_type == 'General')
+
+            if not is_subject_general_for_class:  # إذا كانت المادة ليست عامة للصف (أي Scientific أو Literary)
+                # اربط فقط بالشعب ذات stream_type المطابق أو الشعب العامة (stream_type is None).
                 sections_to_link = sections_to_link.filter(
                     Q(stream_type=subject_instance.stream_type) | Q(stream_type__isnull=True)
-                    # الشعب ذات المسار المحدد، أو الشعب العامة
                 )
-                # المنطق هنا: المادة بـ stream_type محدد (مثلاً Scientific)
-                # يمكن أن تُربط بالشعب التي stream_type الخاص بها إما:
-                # أ) يطابق stream_type المادة (مثلاً Scientific)
-                # ب) يكون None (شعبة عامة)، مما يسمح للمادة "المتخصصة" بأن تُدرس في شعبة "عامة".
-                # إذا كنت تريد فقط الشعب التي يتطابق stream_type الخاص بها تماماً، فاحذف `| Q(stream_type__isnull=True)`
-                # أي تكون هكذا: sections_to_link = sections_to_link.filter(stream_type=subject_instance.stream_type)
-
                 print(
                     f"Linking subject '{subject_instance.name}' (Stream: {subject_instance.stream_type}) to sections in class '{subject_instance.class_obj.name}' with matching or null stream_type.")
 
-            # إذا لم يتم تحديد stream_type للمادة (المادة عامة للصف): اربط بجميع الشعب في الصف.
-            else:
+            else:  # subject_instance.stream_type هو None أو 'General'
+                # في هذه الحالة، لا يتم تطبيق أي فلترة إضافية.
+                # هذا يعني أن 'sections_to_link' ستظل تحتوي على *جميع* الشعب التابعة للصف المحدد.
                 print(
-                    f"Linking subject '{subject_instance.name}' (General) to all sections in class '{subject_instance.class_obj.name}'.")
+                    f"Linking subject '{subject_instance.name}' (General for Class) to ALL sections in class '{subject_instance.class_obj.name}'.")
 
             if not sections_to_link.exists():
                 print(

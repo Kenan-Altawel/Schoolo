@@ -3,18 +3,27 @@ from rest_framework import serializers
 from .models import Subject, SectionSubjectRequirement
 from classes.models import Class, Section
 from django.utils.translation import gettext_lazy as _
-from django.conf import settings # لاستخدام MEDIA_URL إذا لزم الأمر
+from django.conf import settings
 
+
+class SectionSubjectRequirementSerializer(serializers.ModelSerializer):
+    section_name = serializers.CharField(source='section.name', read_only=True)
+    class_name = serializers.CharField(source='section.class_obj.name', read_only=True)
+
+    class Meta:
+        model = SectionSubjectRequirement
+        fields = ['id', 'section', 'subject', 'weekly_lessons_required', 'section_name', 'class_name']
+        read_only_fields = ['subject']
 
 
 class SubjectSerializer(serializers.ModelSerializer):
     class_obj = serializers.PrimaryKeyRelatedField(
         queryset=Class.objects.all(), allow_null=True, required=False,
-        label=_("الفصل الدراسي")
+        label=_("الفصل الدراسي المستهدف")
     )
     section = serializers.PrimaryKeyRelatedField(
         queryset=Section.objects.all(), allow_null=True, required=False,
-        label=_("الشعبة")
+        label=_("الشعبة المستهدفة")
     )
 
     class_obj_name = serializers.CharField(source='class_obj.name', read_only=True)
@@ -47,15 +56,17 @@ class SubjectSerializer(serializers.ModelSerializer):
 
         is_linked_to_class = class_obj is not None
         is_linked_to_section = section_obj is not None
-        is_stream_specified = stream_type is not None
 
-        # 1. المادة يجب أن ترتبط بصف دراسي (class_obj) أو شعبة محددة (section) على الأقل.
+        # **تعديل:** تعريف "المادة العامة" يشمل stream_type=None أو stream_type='General'
+        is_subject_general = (stream_type is None) or (stream_type == 'General')
+
+        # 1. التحقق الأساسي: المادة يجب أن ترتبط بصف دراسي (class_obj) أو شعبة محددة (section) على الأقل.
         if not is_linked_to_class and not is_linked_to_section:
             raise serializers.ValidationError(
                 _("المادة يجب أن ترتبط بصف دراسي (class_obj) أو شعبة محددة (section).")
             )
 
-        # 2. إذا تم تحديد شعبة (section_obj):
+        # 2. التحقق إذا تم تحديد شعبة (section_obj):
         if is_linked_to_section:
             # أ. يجب تحديد الصف (class_obj) الذي تنتمي إليه الشعبة.
             if not is_linked_to_class:
@@ -69,9 +80,9 @@ class SubjectSerializer(serializers.ModelSerializer):
                     "section": _("الشعبة المحددة لا تنتمي للفصل الدراسي المدخل.")
                 })
 
-            # ج. التحقق من توافق stream_type للمادة مع stream_type للشعبة (إذا كانت المادة لديها stream_type).
-            # هذه هي النقطة التي تسمح بتحديد stream_type للمادة حتى لو كانت مربوطة بشعبة.
-            if is_stream_specified:
+            # ج. التحقق من توافق stream_type للمادة مع stream_type للشعبة.
+            # هذا التحقق يتم فقط إذا كانت المادة "ليست عامة" (أي Scientific أو Literary)
+            if not is_subject_general:  # إذا كانت المادة ليست عامة (أي Scientific أو Literary)
                 # إذا كانت الشعبة نفسها لها stream_type محدد (ليست عامة)
                 if section_obj.stream_type:
                     # يجب أن يتطابق stream_type الخاص بالمادة مع stream_type الخاص بالشعبة
@@ -80,46 +91,37 @@ class SubjectSerializer(serializers.ModelSerializer):
                             "stream_type": _("نوع مسار المادة لا يتوافق مع نوع مسار الشعبة المحددة.")
                         })
                 # أما إذا كانت الشعبة ليس لديها stream_type محدد (شعبة عامة: section_obj.stream_type is None)
-                # والسيريالايزر تلقى stream_type للمادة، هذا مسموح به. (مادة علمية تُدرّس في شعبة عامة)
+                # والسيريالايزر تلقى stream_type للمادة (Scientific/Literary)، فهذا مسموح به.
+                # (مادة علمية تُدرّس في شعبة عامة).
 
-        # 3. إذا لم يتم تحديد شعبة (section_obj) ولكن تم تحديد الصف (class_obj):
-        # هذا هو السيناريو الذي تكون فيه المادة لصف كامل (مع أو بدون مسار محدد).
-        # التحقق الوحيد هنا هو أن stream_type (إن وجد) يجب أن يكون صالحاً، وهو ما يغطيه الشرط 4.
+        # 3. **التحقق الجديد/المعدّل:** منع ربط مادة "عامة" (stream_type=None أو 'General') بشعبة محددة.
+        # إذا كانت المادة عامة (حسب تعريف is_subject_general الجديد)
+        # و في نفس الوقت تم تحديد شعبة محددة للمادة (section_obj له قيمة)
+        if is_subject_general and is_linked_to_section:  # **تم تعديل الشرط هنا**
+            raise serializers.ValidationError({
+                "non_field_errors": _(
+                    "لا يمكن ربط مادة عامة (بدون مسار محدد أو بمسار 'عام') بشعبة واحدة محددة. المادة العامة تُربط بجميع شعب الصف تلقائياً.")
+            })
 
         # 4. التحقق من صحة قيمة stream_type إذا تم تحديدها:
-        if is_stream_specified and stream_type not in [choice[0] for choice in Subject.STREAM_TYPE_CHOICES]:
+        # هذا الشرط يضمن أن القيمة المدخلة لـ stream_type (إذا وُجدت) هي قيمة صالحة من CHOICES
+        # (بما في ذلك 'General' الآن).
+        # ملاحظة: هذا التحقق لا يسبب خطأ إذا كانت القيمة None، لأن is_stream_specified تكون False في هذه الحالة.
+        if stream_type is not None and stream_type not in [choice[0] for choice in Subject.STREAM_TYPE_CHOICES]:
             raise serializers.ValidationError(_("نوع المسار المدخل غير صالح."))
 
-        # 5. إذا تم تحديد stream_type للمادة ولكن لم يتم تحديد الصف، هذا خطأ.
-        # (لأن stream_type لا معنى له بدون سياق صف دراسي).
-        if is_stream_specified and not is_linked_to_class:
+        # 5. التحقق المنطقي: إذا تم تحديد stream_type للمادة ولكن لم يتم تحديد الصف، هذا خطأ.
+        # (لأن stream_type للمادة يجب أن يرتبط بسياق صف دراسي).
+        # هذا الشرط يحتاج لتعديل طفيف ليأخذ في الاعتبار أن 'General' هو أيضاً stream_type محدد الآن.
+        # لذا، "stream_type محدد" تعني أي قيمة غير None.
+        if stream_type is not None and not is_linked_to_class:  # **تم تعديل الشرط هنا**
             raise serializers.ValidationError(
                 _("نوع المسار (stream_type) يجب أن يُحدد فقط عند ربط المادة بصف دراسي (class_obj).")
             )
 
+        # 6. التحقق من default_weekly_lessons
         default_weekly_lessons = data.get('default_weekly_lessons')
         if default_weekly_lessons is not None and default_weekly_lessons <= 0:
             raise serializers.ValidationError(_("عدد الحصص الأسبوعية الافتراضي يجب أن يكون رقماً صحيحاً وموجباً."))
 
         return data
-
-
-class SectionSubjectRequirementSerializer(serializers.ModelSerializer):
-    section = serializers.PrimaryKeyRelatedField(
-        queryset=Section.objects.all(),
-    )
-    subject = serializers.PrimaryKeyRelatedField(
-        queryset=Subject.objects.all(),
-    )
-
-    section_name = serializers.CharField(source='section.name', read_only=True)
-    subject_name = serializers.CharField(source='subject.name', read_only=True)
-    class_name = serializers.CharField(source='section.class_obj.name', read_only=True)
-
-    class Meta:
-        model = SectionSubjectRequirement
-        fields = [
-            'id', 'section', 'subject', 'weekly_lessons_required',
-            'section_name', 'subject_name', 'class_name'
-        ]
-        read_only_fields = ['section_name', 'subject_name', 'class_name']
