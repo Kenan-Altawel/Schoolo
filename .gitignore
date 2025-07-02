@@ -1,0 +1,18 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Virtual environment (adjust if your venv is named 'venv' not '.venv')
+.venv/
+venv/
+
+# Local database
+*.sqlite3
+
+# IDE files (PyCharm, VS Code)
+.idea/
+.vscode/
+*.iml
+
+# Log files
+*.log
