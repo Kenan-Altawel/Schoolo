@@ -24,7 +24,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from enrollment.models import RegistrationSetting
 from .tokens import get_tokens_for_user
 User = get_user_model()
-from subject.serializers import SubjectAssignmentSerializer
+# from subject.serializers import SubjectAssignmentSerializer
 from subject.models import Subject, TeacherSubject
 
 
@@ -150,11 +150,11 @@ class TeacherRegistrationSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(max_length=100, required=True, label="الاسم الأول")
     last_name = serializers.CharField(max_length=100, required=True, label="اسم العائلة")
     specialization= serializers.CharField(max_length=100, required=True)
-    subjects_to_teach = SubjectAssignmentSerializer(
-        many=True, 
-        required=False, # يمكن أن يكون المعلم بدون مواد في البداية
-        label=_("المواد المراد تدريسها")
-    )
+    # subjects_to_teach = SubjectAssignmentSerializer(
+    #     many=True, 
+    #     required=False, # يمكن أن يكون المعلم بدون مواد في البداية
+    #     label=_("المواد المراد تدريسها")
+    # )
     class Meta:
         model = User
         fields = [
