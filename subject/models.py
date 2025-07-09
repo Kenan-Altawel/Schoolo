@@ -1,3 +1,4 @@
+# subject/models.py
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from accounts.models import AutoCreateAndAutoUpdateTimeStampedModel, User
@@ -12,7 +13,7 @@ class Subject(AutoCreateAndAutoUpdateTimeStampedModel):
         ('General', _('عام')),
     ]
 
-    class_obj = models.ForeignKey( 
+    class_obj = models.ForeignKey(
         Class,
         on_delete=models.SET_NULL,
         null=True,
@@ -51,8 +52,9 @@ class Subject(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("هل المادة نشطة؟"),
         help_text=_("يشير إلى ما إذا كانت هذه المادة متاحة للتدريس.")
     )
-    pdf_file = models.FileField( 
-        upload_to='subject/media/subject_pdfs/', 
+    # >>> التعديل هنا: تغيير pdf_url إلى pdf_file ونوع FileField <<<
+    pdf_file = models.FileField( # تغيير نوع الحقل
+        upload_to='subject_pdfs/', # هذا المجلد سيتم إنشاؤه داخل MEDIA_ROOT
         blank=True,
         null=True,
         verbose_name=_("ملف المنهج الدراسي PDF"),
@@ -62,6 +64,13 @@ class Subject(AutoCreateAndAutoUpdateTimeStampedModel):
     default_weekly_lessons = models.PositiveIntegerField(
         verbose_name=_("عدد الحصص الأسبوعية الافتراضي"),
         default=0,
+        help_text=_("عدد الحصص الأسبوعية الافتراضي لهذه المادة، يستخدم عند عدم تحديد عدد معين للشعبة.")
+    )
+
+
+    default_weekly_lessons = models.PositiveIntegerField(
+        default=1,
+        verbose_name=_("عدد الحصص الأسبوعية الافتراضي"),
         help_text=_("عدد الحصص الأسبوعية الافتراضي لهذه المادة، يستخدم عند عدم تحديد عدد معين للشعبة.")
     )
 
@@ -83,27 +92,19 @@ class Subject(AutoCreateAndAutoUpdateTimeStampedModel):
             ),
         ]
 
-
     def __str__(self):
-        link_info = ""
-        if self.section:
-            link_info = f" ({self.section.name})"
-        elif self.class_obj and self.stream_type:
-            link_info = f" ({self.class_obj.name} - {self.get_stream_type_display()})"
-        elif self.class_obj:
-            link_info = f" ({self.class_obj.name})"
-        return f"{self.name}{link_info}"
+        return f"{self.name}"
 
 
 class TeacherSubject(AutoCreateAndAutoUpdateTimeStampedModel):
     teacher = models.ForeignKey(
-        Teacher, 
+        Teacher,
         on_delete=models.CASCADE,
         related_name='teaching_subjects',
         verbose_name=_("المعلم")
     )
     subject = models.ForeignKey(
-        Subject, 
+        Subject,
         on_delete=models.CASCADE,
         related_name='taught_by_teachers',
         verbose_name=_("المادة الدراسية")
@@ -120,9 +121,8 @@ class TeacherSubject(AutoCreateAndAutoUpdateTimeStampedModel):
         unique_together = [
             ['teacher', 'subject']
         ]
-        # ordering = ['teacher_first_name']
 
-    def _str_(self):
+    def __str__(self):
         return f"{self.teacher.user.get_full_name()} يدرس {self.subject.name} ({self.weekly_hours} ساعة/أسبوع)"
 
 
@@ -133,23 +133,23 @@ class SectionSubjectRequirement(models.Model):
         Section,
         on_delete=models.CASCADE,
         related_name='section_requirements',
-        verbose_name=_("الشعبة") 
+        verbose_name=_("الشعبة")
     )
     subject = models.ForeignKey(
         Subject,
         on_delete=models.CASCADE,
         related_name='subject_requirements',
-        verbose_name=_("المادة") 
+        verbose_name=_("المادة")
     )
-    
+
     weekly_lessons_required = models.IntegerField(
         help_text=_('عدد الحصص الأسبوعية المطلوبة لهذه المادة في هذه الشعبة'),
-        verbose_name=_("عدد الحصص الأسبوعية المطلوبة") 
+        verbose_name=_("عدد الحصص الأسبوعية المطلوبة")
     )
 
     class Meta:
         unique_together = ('section', 'subject')
-        verbose_name = _("متطلب حصص الشعبة") 
+        verbose_name = _("متطلب حصص الشعبة")
         verbose_name_plural = _("متطلبات حصص الشعب")
 
     def __str__(self):

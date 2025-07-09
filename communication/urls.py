@@ -1,10 +1,15 @@
-# subject/urls.py (لا تغييرات)
+# communication/urls.py
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from . import views
+from .views import NewsActivityViewSet
+
 
 router = DefaultRouter()
-router.register('subjects', views.SubjectViewSet)
+
+#
+router.register(r'news-activities', NewsActivityViewSet)
+
 urlpatterns = [
     path('', include(router.urls)),
 ]

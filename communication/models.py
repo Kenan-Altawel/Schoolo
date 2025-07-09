@@ -15,15 +15,15 @@ class NewsActivity(AutoCreateAndAutoUpdateTimeStampedModel):
         ('announcement', _('إعلان')),
         ('activity', _('نشاط')),
     ]
-
     TARGET_AUDIENCE_CHOICES = [
         ('all', _('الجميع')),
-        ('teachers', _('المعلمون')),
-        ('students', _('الطلاب')),
+        ('teachers', _('المعلمون')),  # هذا هو الخيار الذي تختاره
+        ('students', _('الطلاب')),  # وهذا أيضاً
         ('class', _('فصل دراسي')),
         ('section', _('قسم')),
         ('subject', _('مادة دراسية')),
     ]
+
 
     title = models.CharField(
         max_length=255,
@@ -49,12 +49,12 @@ class NewsActivity(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("النوع"),
         help_text=_("هل هو إعلان عام أم نشاط محدد؟")
     )
+
     target_audience = models.CharField(
         max_length=20,
         choices=TARGET_AUDIENCE_CHOICES,
         default='all',
-        verbose_name=_("الجمهور المستهدف"),
-        help_text=_("لمن يستهدف هذا الإعلان/النشاط؟")
+        verbose_name=_("الجمهور المستهدف")
     )
     target_class = models.ForeignKey(
         Class, # هنا نستخدم اسم النموذج مباشرة لأنه تم استيراده
