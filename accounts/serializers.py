@@ -379,7 +379,37 @@ class AdminLoginSerializer(BaseLoginSerializer):
         response_data = super().save(**kwargs)
         response_data['user_role'] = 'admin'
         return response_data
+class AdminOrSuperuserLoginSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
 
+        # إضافة معلومات الدور إلى التوكن (اختياري لكن مفيد)
+        if user.is_superuser:
+            token['role'] = 'superuser'
+        elif user.is_staff:
+            token['role'] = 'admin'
+        else:
+            return "you can not access this" # أو 'regular_user' إذا كان هذا السيريالايزر يستخدم لغير المدراء
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs) # تقوم هذه الخطوة بالمصادقة القياسية للمستخدم
+
+        user = self.user # المستخدم الذي تمت مصادقته بواسطة TokenObtainPairSerializer
+
+        if not user.is_staff and not user.is_superuser:
+            # إذا لم يكن المستخدم مشرفاً عاماً ولا مسؤولاً، ارفض تسجيل الدخول.
+            raise AuthenticationFailed(_("غير مصرح: هذا الحساب ليس حساب مسؤول أو مشرف عام."))
+
+        # إضافة الدور إلى بيانات الاستجابة
+        if user.is_superuser:
+            data['role'] = 'superuser'
+        elif user.is_staff:
+            data['role'] = 'admin'
+
+        return data
+    
 class TeacherLoginSerializer(BaseLoginSerializer):
     """
     سيريالايزر لتسجيل دخول المعلمين فقط.

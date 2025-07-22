@@ -179,7 +179,13 @@ class AdminLoginView(BaseLoginAPIView):
     serializer_class = AdminLoginSerializer
     permission_classes = [AllowAny]
 
-
+class AdminSuperuserLoginView(TokenObtainPairView):
+    """
+    نقطة نهاية تسجيل الدخول للمسؤولين والمشرفين العامين.
+    تتحقق من أن المستخدم إما مسؤول أو مشرف عام وتوفر التوكن ومعلومات الدور.
+    """
+    permission_classes = [AllowAny]
+    serializer_class = AdminOrSuperuserLoginSerializer
 
 class TeacherLoginView(BaseLoginAPIView):
     """

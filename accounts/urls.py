@@ -6,6 +6,7 @@ urlpatterns = [
     path('student-login/', StudentloginView.as_view(), name='student_login'),
     path('superuser-login/', SuperuserLoginView.as_view(), name='superuser-login'),
     path('admin-login/', AdminLoginView.as_view(), name='admin_login'),
+    path('adminsuperuser-login/', AdminSuperuserLoginView.as_view(), name='superuseradmin_login'),
     path('teacher-login/', TeacherLoginView.as_view(), name='teacher_login'),
     path('register-student/', StudentRegistrationView.as_view(), name='register_student'), 
     path('register-teacher/', TeacherRegistrationView.as_view(), name='teacher_register'),
