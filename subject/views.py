@@ -9,12 +9,28 @@ from .serializers import SubjectSerializer, SectionSubjectRequirementSerializer
 from classes.models import Class, Section
 from django.db import transaction
 from django.db.models import Q
+from accounts.permissions import *
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import *
+
+class CustomPermission(permissions.BasePermission):
+   
+    def has_permission(self, request, view):
+        if not request.user :
+            return False
+
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        else:
+            return IsAdminOrSuperuser().has_permission(request, view)
 
 
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [CustomPermission]
+    filter_backends = [DjangoFilterBackend] 
+    filterset_class = SubjectFilter 
 
     def perform_create(self, serializer):
         with transaction.atomic():
@@ -64,9 +80,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
                 print(
                     f"Linking subject '{subject_instance.name}' (Stream: {subject_instance.stream_type}) to sections in class '{subject_instance.class_obj.name}' with matching or null stream_type.")
 
-            else:  # subject_instance.stream_type هو None أو 'General'
-                # في هذه الحالة، لا يتم تطبيق أي فلترة إضافية.
-                # هذا يعني أن 'sections_to_link' ستظل تحتوي على *جميع* الشعب التابعة للصف المحدد.
+            else:  
                 print(
                     f"Linking subject '{subject_instance.name}' (General for Class) to ALL sections in class '{subject_instance.class_obj.name}'.")
 

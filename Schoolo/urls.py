@@ -16,23 +16,28 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from django.conf.urls.i18n import i18n_patterns
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    
+
+]
+urlpatterns += i18n_patterns(
     path('api/academic/', include('academic.urls')),
     path('api/class/', include('classes.urls')),
     path('api/accounts/', include('accounts.urls')),
     path('api/students/', include('students.urls')),
     path('api/enrollment/', include('enrollment.urls')),
     path('api/subject/', include('subject.urls')),
+    path('api/teachers/', include('teachers.urls')),
     path('api/contents/', include('contents.urls')),
-
-
     path('api/communication/', include('communication.urls')),
-    
 
-]
+    prefix_default_language=False
+)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

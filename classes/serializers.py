@@ -11,13 +11,14 @@ class ClassSerializer(serializers.ModelSerializer):
 class SectionSerializer(serializers.ModelSerializer):
     academic_year_name = serializers.CharField(source='academic_year.name', read_only=True)
     class_name = serializers.CharField(source='class_obj.name', read_only=True)
+    class_id = serializers.IntegerField(source='class_obj.id', read_only=True)
 
     class Meta:
         model = Section
         fields = [
             'id', 'name', 'stream_type', 'capacity', 'is_active',
             'activation_date', 'deactivation_date',
-            'academic_year_name', 'class_name'
+            'academic_year_name', 'class_name', 'class_id',
         ]
         read_only_fields = ['academic_year', 'class_obj', 'activation_date', 'deactivation_date']
 

@@ -54,7 +54,7 @@ class Subject(AutoCreateAndAutoUpdateTimeStampedModel):
     )
     # >>> التعديل هنا: تغيير pdf_url إلى pdf_file ونوع FileField <<<
     pdf_file = models.FileField( # تغيير نوع الحقل
-        upload_to='subject_pdfs/', # هذا المجلد سيتم إنشاؤه داخل MEDIA_ROOT
+        upload_to='subject/subject_pdfs/', # هذا المجلد سيتم إنشاؤه داخل MEDIA_ROOT
         blank=True,
         null=True,
         verbose_name=_("ملف المنهج الدراسي PDF"),
@@ -64,13 +64,6 @@ class Subject(AutoCreateAndAutoUpdateTimeStampedModel):
     default_weekly_lessons = models.PositiveIntegerField(
         verbose_name=_("عدد الحصص الأسبوعية الافتراضي"),
         default=0,
-        help_text=_("عدد الحصص الأسبوعية الافتراضي لهذه المادة، يستخدم عند عدم تحديد عدد معين للشعبة.")
-    )
-
-
-    default_weekly_lessons = models.PositiveIntegerField(
-        default=1,
-        verbose_name=_("عدد الحصص الأسبوعية الافتراضي"),
         help_text=_("عدد الحصص الأسبوعية الافتراضي لهذه المادة، يستخدم عند عدم تحديد عدد معين للشعبة.")
     )
 

@@ -87,8 +87,22 @@ class TeacherRegistrationView(generics.CreateAPIView):
                 try:
                     serializer = self.get_serializer(data=request.data)
                     serializer.is_valid(raise_exception=True)
-                    serializer.save()
-                    return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+                    user=serializer.save()
+                    teacher_id = None
+                    specialization = None
+                    if hasattr(user, 'teacher_profile'):
+                        teacher_id = user.id
+                        specialization = user.teacher_profile.specialization
+
+                    return Response({
+                        "message": "تم تسجيل المعلم بنجاح.",
+                        "user_id": user.id,
+                        "phone_number": user.phone_number,
+                        "first_name": user.first_name,
+                        "last_name": user.last_name,
+                        "teacher_id": teacher_id,
+                        "specialization": specialization
+                    }, status=status.HTTP_201_CREATED)
 
                 except ValidationError as e: 
                     logger.error(f"Validation error during student registration: {e.detail}")

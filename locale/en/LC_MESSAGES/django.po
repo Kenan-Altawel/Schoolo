@@ -1,0 +1,1464 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-07-23 21:34+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: .\Schoolo\settings.py:79
+msgid "English"
+msgstr "English"
+
+#: .\Schoolo\settings.py:80
+msgid "Arabic"
+msgstr "Arabic"
+
+#: .\academic\models.py:7
+msgid "اسم العام الدراسي"
+msgstr "Academic Year Name"
+
+#: .\academic\models.py:8 .\academic\models.py:29
+msgid "تاريخ البدء"
+msgstr "Start Date"
+
+#: .\academic\models.py:9 .\academic\models.py:30
+msgid "تاريخ الانتهاء"
+msgstr "End Date"
+
+#: .\academic\models.py:10
+msgid "هل هو العام الحالي؟"
+msgstr "Is this the current year?"
+
+#: .\academic\models.py:13
+msgid "عام دراسي"
+msgstr "Academic Year"
+
+#: .\academic\models.py:14
+msgid "سنوات دراسية"
+msgstr "Academic Years"
+
+#: .\academic\models.py:28
+msgid "اسم الفصل الدراسي"
+msgstr "Semester Name"
+
+#: .\academic\models.py:31
+msgid "هل هو الفصل الحالي؟"
+msgstr "Is this the current semester?"
+
+#: .\academic\models.py:34 .\communication\models.py:22
+msgid "فصل دراسي"
+msgstr "Semester"
+
+#: .\academic\models.py:35
+msgid "فصول دراسية"
+msgstr "Semesters"
+
+#: .\academic\models.py:53
+msgid "الترتيب التسلسلي للحصة/الفترة في اليوم (مثال: 1, 2, 3...)"
+msgstr "Sequential order of the class/period in the day (e.g., 1, 2, 3...)"
+
+#: .\academic\models.py:54
+msgid "وقت بدء الفترة الزمنية (مثال: 08:00)"
+msgstr "Start time of the period (e.g., 08:00)"
+
+#: .\academic\models.py:55
+msgid "وقت انتهاء الفترة الزمنية (مثال: 08:45)"
+msgstr "End time of the period (e.g., 08:45)"
+
+#: .\academic\models.py:56
+msgid "هل هذه الفترة استراحة وليست حصة دراسية؟"
+msgstr "Is this period a break and not a class?"
+
+#: .\academic\models.py:61
+msgid "الفترة الزمنية للحصة"
+msgstr "Class Period"
+
+#: .\academic\models.py:62
+msgid "الفترات الزمنية للحصص"
+msgstr "Class Periods"
+
+#: .\academic\models.py:69
+msgid "1=الأحد, 2=الاثنين, ..., 7=السبت"
+msgstr "1=Sunday, 2=Monday, ..., 7=Saturday"
+
+#: .\academic\models.py:70
+msgid "اسم اليوم (مثال: الأحد)"
+msgstr "Day Name (e.g., Sunday)"
+
+#: .\academic\models.py:71
+msgid "هل هذا اليوم يوم دراسي عادي؟ (للسماح بالعطلات)"
+msgstr "Is this a normal school day? (to allow for holidays)"
+
+#: .\academic\models.py:76 .\schedules\models.py:64 .\schedules\models.py:141
+#: .\teachers\models.py:52
+msgid "يوم الأسبوع"
+msgstr "Day of the Week"
+
+#: .\academic\models.py:77
+msgid "أيام الأسبوع"
+msgstr "Days of the Week"
+
+#: .\accounts\models.py:12
+msgid "تاريخ الإنشاء"
+msgstr "Creation Date"
+
+#: .\accounts\models.py:13
+msgid "تاريخ آخر تحديث"
+msgstr "Last Update Date"
+
+#: .\accounts\models.py:21
+msgid "The Phone Number must be set"
+msgstr "The Phone Number must be set"
+
+#: .\accounts\models.py:58
+msgid "Superuser must have is_staff=True."
+msgstr "Superuser must have is_staff=True."
+
+#: .\accounts\models.py:60
+msgid "Superuser must have is_superuser=True."
+msgstr "Superuser must have is_superuser=True."
+
+#: .\accounts\models.py:64 .\accounts\serializers.py:239
+#: .\accounts\serializers.py:312 .\accounts\serializers.py:432
+#: .\accounts\serializers.py:474
+msgid "رقم الهاتف"
+msgstr "Phone Number"
+
+#: .\accounts\models.py:65
+msgid "الاسم الأول"
+msgstr "First Name"
+
+#: .\accounts\models.py:66
+msgid "الاسم الأخير"
+msgstr "Last Name"
+
+#: .\accounts\models.py:67
+msgid "نشط"
+msgstr "Active"
+
+#: .\accounts\models.py:68
+msgid "موظف"
+msgstr "Staff"
+
+#: .\accounts\models.py:69
+msgid "مشرف"
+msgstr "Superuser"
+
+#: .\accounts\models.py:70
+msgid "آخر تسجيل دخول"
+msgstr "Last Login"
+
+#: .\accounts\models.py:71
+msgid "تم تأكيد رقم الهاتف"
+msgstr "Phone number confirmed"
+
+#: .\accounts\models.py:74
+msgid "groups"
+msgstr "groups"
+
+#: .\accounts\models.py:76
+msgid ""
+"The groups this user belongs to. A user will get all permissions granted to "
+"each of their groups."
+msgstr "The groups this user belongs to. A user will get all permissions granted to each of their groups."
+
+#: .\accounts\models.py:83
+msgid "user permissions"
+msgstr "user permissions"
+
+#: .\accounts\models.py:85
+msgid "Specific permissions for this user."
+msgstr "Specific permissions for this user."
+
+#: .\accounts\models.py:95
+msgid "المستخدم"
+msgstr "User"
+
+#: .\accounts\models.py:96
+msgid "المستخدمون"
+msgstr "Users"
+
+#: .\accounts\models.py:145
+msgid "رمز OTP"
+msgstr "OTP Code"
+
+#: .\accounts\models.py:146
+msgid "رموز OTP"
+msgstr "OTP Codes"
+
+#: .\accounts\otp.py:73
+msgid "فشل إرسال كود التحقق. الرجاء المحاولة لاحقًا."
+msgstr "Failed to send verification code. Please try again later."
+
+#: .\accounts\otp.py:79
+msgid "حدث خطأ أثناء إرسال كود التحقق. الرجاء المحاولة لاحقًا."
+msgstr "An error occurred while sending the verification code. Please try again later."
+
+#: .\accounts\otp.py:84
+msgid "تم إرسال رمز التحقق إلى رقم هاتفك."
+msgstr "A verification code has been sent to your phone number."
+
+#: .\accounts\serializers.py:44
+msgid "الصف الدراسي"
+msgstr "Class"
+
+#: .\accounts\serializers.py:63 .\accounts\serializers.py:249
+msgid "كلمتا المرور غير متطابقتين."
+msgstr "Passwords do not match."
+
+#: .\accounts\serializers.py:66 .\accounts\serializers.py:166
+#: .\accounts\serializers.py:219
+msgid "رقم الهاتف هذا مسجل بالفعل."
+msgstr "This phone number is already registered."
+
+#: .\accounts\serializers.py:102
+msgid ""
+"حدث خطأ في قاعدة البيانات. قد تكون بعض البيانات مكررة. الرجاء التحقق من "
+"البيانات والمحاولة مرة أخرى."
+msgstr "A database error occurred. Some data may be duplicated. Please check the data and try again."
+
+#: .\accounts\serializers.py:105
+msgid "حدث خطأ غير متوقع أثناء التسجيل. الرجاء المحاولة لاحقاً.: "
+msgstr "An unexpected error occurred during registration. Please try again later.: "
+
+#: .\accounts\serializers.py:117 .\accounts\serializers.py:297
+msgid "الحساب غير نشط. يرجى الاتصال بالإدارة لتفعيله."
+msgstr "Account is inactive. Please contact administration to activate it."
+
+#: .\accounts\serializers.py:122
+msgid ""
+"بيانات الاعتماد غير صالحة لدخول الطلاب. يرجى استخدام بوابة الدخول الصحيحة."
+msgstr "Invalid credentials for student login. Please use the correct login portal."
+
+#: .\accounts\serializers.py:127
+msgid "يرجى تأكيد رقم هاتفك لإكمال عملية تسجيل الدخول."
+msgstr "Please confirm your phone number to complete the login process."
+
+#: .\accounts\serializers.py:134
+msgid "حساب الطالب هذا غير مقبول أو مسجل بعد. يرجى مراجعة إدارة المدرسة."
+msgstr "This student account is not yet accepted or registered. Please contact school administration."
+
+#: .\accounts\serializers.py:138
+msgid ""
+"المستخدم في مجموعة الطلاب ولكن لا يوجد ملف طالب مرتبط به. يرجى الاتصال "
+"بالدعم."
+msgstr "User is in the student group but no student profile is associated with them. Please contact support."
+
+#: .\accounts\serializers.py:240
+msgid "كلمة المرور الجديدة"
+msgstr "New Password"
+
+#: .\accounts\serializers.py:241
+msgid "تأكيد كلمة المرور الجديدة"
+msgstr "Confirm New Password"
+
+#: .\accounts\serializers.py:255 .\accounts\serializers.py:326
+#: .\accounts\serializers.py:443 .\accounts\serializers.py:491
+msgid "رقم الهاتف غير مسجل."
+msgstr "Phone number not registered."
+
+#: .\accounts\serializers.py:258
+msgid ""
+"هذا الحساب ليس حساب مدير أو معلم، ولا يمكن تعيين كلمة المرور له بهذه الطريقة."
+msgstr "This account is not an admin or teacher account, and password cannot be set this way."
+
+#: .\accounts\serializers.py:261 .\accounts\serializers.py:332
+msgid "رقم الهاتف غير مؤكد بعد. يرجى تأكيد رقم هاتفك أولاً."
+msgstr "Phone number not yet confirmed. Please confirm your phone number first."
+
+#: .\accounts\serializers.py:278
+msgid "تم تعيين كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول."
+msgstr "Password successfully set. You can now log in."
+
+#: .\accounts\serializers.py:302
+msgid "ليس لديك صلاحيات مشرف (superuser). يرجى استخدام بوابة الدخول الصحيحة."
+msgstr "You do not have superuser privileges. Please use the correct login portal."
+
+#: .\accounts\serializers.py:313 .\accounts\serializers.py:433
+msgid "كلمة المرور"
+msgstr "Password"
+
+#: .\accounts\serializers.py:322
+msgid "يجب توفير رقم الهاتف وكلمة المرور."
+msgstr "Phone number and password must be provided."
+
+#: .\accounts\serializers.py:329
+msgid "هذا الحساب غير نشط."
+msgstr "This account is inactive."
+
+#: .\accounts\serializers.py:336 .\accounts\serializers.py:447
+msgid "كلمة المرور غير صحيحة."
+msgstr "Incorrect password."
+
+#: .\accounts\serializers.py:357
+msgid "تم تسجيل الدخول بنجاح."
+msgstr "Successfully logged in."
+
+#: .\accounts\serializers.py:374
+msgid "هذا الحساب ليس حساب مدير."
+msgstr "This account is not an admin account."
+
+#: .\accounts\serializers.py:403
+msgid "غير مصرح: هذا الحساب ليس حساب مسؤول أو مشرف عام."
+msgstr "Unauthorized: This account is not an admin or superuser account."
+
+#: .\accounts\serializers.py:422
+msgid "هذا الحساب ليس حساب معلم."
+msgstr "This account is not a teacher account."
+
+#: .\accounts\serializers.py:450
+msgid "هذا الحساب ليس حساب طالب."
+msgstr "This account is not a student account."
+
+#: .\accounts\serializers.py:461
+msgid "لا تسطيع التسجيل في المدرسة بهذه الطريقة."
+msgstr "You cannot register at the school this way."
+
+#: .\accounts\serializers.py:475
+msgid "رمز التحقق"
+msgstr "Verification Code"
+
+#: .\accounts\serializers.py:477
+msgid "تأكيد رقم الهاتف"
+msgstr "Confirm Phone Number"
+
+#: .\accounts\serializers.py:477
+msgid "إعادة تعيين كلمة المرور"
+msgstr "Reset Password"
+
+#: .\accounts\serializers.py:479
+msgid "الغرض من التحقق"
+msgstr "Purpose of Verification"
+
+#: .\accounts\serializers.py:495
+msgid "تم تأكيد رقم الهاتف لهذا المستخدم بالفعل."
+msgstr "This user's phone number has already been confirmed."
+
+#: .\accounts\serializers.py:506
+msgid "رمز التحقق غير صحيح أو انتهت صلاحيته."
+msgstr "Verification code is incorrect or expired."
+
+#: .\accounts\serializers.py:526
+msgid "تم تأكيد رقم الهاتف بنجاح. يمكنك الآن تسجيل الدخول."
+msgstr "Phone number confirmed successfully. You can now log in."
+
+#: .\accounts\serializers.py:529
+msgid "تم التحقق من رمز التحقق بنجاح. يمكنك الآن تعيين كلمة مرور جديدة."
+msgstr "Verification code successfully verified. You can now set a new password."
+
+#: .\accounts\serializers.py:535
+msgid "توكن التحديث غير صالح أو منتهي الصلاحية."
+msgstr "Refresh token is invalid or expired."
+
+#: .\accounts\serializers.py:553
+msgid "تم تسجيل الخروج بنجاح."
+msgstr "Successfully logged out."
+
+#: .\accounts\views.py:27
+msgid "التسجيل مغلق حالياً. الرجاء المحاولة في وقت لاحق."
+msgstr "Registration is currently closed. Please try again later."
+
+#: .\accounts\views.py:33
+msgid ""
+"حدث خطأ في النظام: إعدادات التسجيل غير متوفرة. الرجاء التواصل مع الإدارة."
+msgstr "System Error: Registration settings are unavailable. Please contact administration."
+
+#: .\accounts\views.py:47
+msgid "تم تسجيل طلبك . قم بمراجعة الإدارة خلال 15 يوم لاستكمال الإجراءات."
+msgstr "Your request has been registered. Please check with the administration within 15 days to complete the procedures."
+
+#: .\accounts\views.py:49
+msgid "تم تسجيل طلبك . الرجاء القدوم إلى المدرسة لاستكمال إجراءات التسجيل."
+msgstr "Your request has been registered. Please come to the school to complete the registration procedures."
+
+#: .\accounts\views.py:137 .\accounts\views.py:169
+msgid "حدث خطأ داخلي أثناء معالجة طلبك. يرجى المحاولة لاحقًا."
+msgstr "An internal error occurred while processing your request. Please try again later."
+
+#: .\accounts\views.py:157
+msgid "خطأ في تكوين الخادم: لم يتم تحديد سيريالايزر."
+msgstr "Server configuration error: Serializer not specified."
+
+#: .\admins\models.py:11 .\students\models.py:14 .\teachers\models.py:11
+msgid "المستخدم المرتبط"
+msgstr "Associated User"
+
+#: .\admins\models.py:17 .\classes\models.py:38 .\contents\models.py:21
+#: .\schedules\models.py:39 .\schedules\models.py:116 .\students\models.py:15
+msgid "القسم"
+msgstr "Section"
+
+#: .\admins\models.py:21
+msgid "المسؤول"
+msgstr "Admin"
+
+#: .\admins\models.py:22
+msgid "المسؤولون"
+msgstr "Admins"
+
+#: .\attendance\models.py:10
+msgid "حاضر"
+msgstr "Present"
+
+#: .\attendance\models.py:11
+msgid "غائب"
+msgstr "Absent"
+
+#: .\attendance\models.py:12
+msgid "متأخر"
+msgstr "Late"
+
+#: .\attendance\models.py:13
+msgid "معذور"
+msgstr "Excused"
+
+#: .\attendance\models.py:20 .\grading\models.py:219 .\students\models.py:47
+msgid "الطالب"
+msgstr "Student"
+
+#: .\attendance\models.py:23
+msgid "التاريخ"
+msgstr "Date"
+
+#: .\attendance\models.py:24
+msgid "تاريخ تسجيل الحضور."
+msgstr "Date of attendance record."
+
+#: .\attendance\models.py:30 .\schedules\models.py:76
+msgid "الحالة"
+msgstr "Status"
+
+#: .\attendance\models.py:31
+msgid "حالة حضور الطالب: حاضر، غائب، متأخر، معذور."
+msgstr "Student attendance status: Present, Absent, Late, Excused."
+
+#: .\attendance\models.py:38
+msgid "تم التسجيل بواسطة"
+msgstr "Recorded by"
+
+#: .\attendance\models.py:43
+msgid "سجل حضور"
+msgstr "Attendance Record"
+
+#: .\attendance\models.py:44
+msgid "سجلات الحضور"
+msgstr "Attendance Records"
+
+#: .\attendance\models.py:57
+msgid "لا يمكن تسجيل الحضور لتاريخ مستقبلي."
+msgstr "Attendance cannot be recorded for a future date."
+
+#: .\classes\models.py:7
+msgid "اسم الفصل"
+msgstr "Class Name"
+
+#: .\classes\models.py:8 .\communication\models.py:34 .\contents\models.py:103
+msgid "الوصف"
+msgstr "Description"
+
+#: .\classes\models.py:11 .\classes\models.py:31 .\grading\models.py:41
+#: .\schedules\models.py:59 .\schedules\models.py:136
+msgid "الفصل الدراسي"
+msgstr "Semester"
+
+#: .\classes\models.py:12
+msgid "الفصول الدراسية"
+msgstr "Semesters"
+
+#: .\classes\models.py:22 .\grading\models.py:22 .\subject\models.py:13
+msgid "عام"
+msgstr "General"
+
+#: .\classes\models.py:23 .\grading\models.py:20 .\subject\models.py:11
+msgid "علمي"
+msgstr "Scientific"
+
+#: .\classes\models.py:24 .\grading\models.py:21 .\subject\models.py:12
+msgid "أدبي"
+msgstr "Literary"
+
+#: .\classes\models.py:28
+msgid "اسم الشعبة"
+msgstr "Section Name"
+
+#: .\classes\models.py:29
+msgid "مثل: علمي، أدبي، عام."
+msgstr "E.g., Scientific, Literary, General."
+
+#: .\classes\models.py:30 .\grading\models.py:35 .\schedules\models.py:53
+#: .\schedules\models.py:130
+msgid "العام الدراسي"
+msgstr "Academic Year"
+
+#: .\classes\models.py:32
+msgid "السعة القصوى للقسم"
+msgstr "Maximum Section Capacity"
+
+#: .\classes\models.py:32
+msgid "الحد الأقصى لعدد الطلاب في هذا القسم."
+msgstr "Maximum number of students in this section."
+
+#: .\classes\models.py:33
+msgid "هل القسم نشط؟"
+msgstr "Is the section active?"
+
+#: .\classes\models.py:33
+msgid "يشير إلى ما إذا كان القسم قيد الاستخدام حاليًا."
+msgstr "Indicates whether the section is currently in use."
+
+#: .\classes\models.py:34
+msgid "تاريخ التفعيل"
+msgstr "Activation Date"
+
+#: .\classes\models.py:35
+msgid "تاريخ إلغاء التفعيل"
+msgstr "Deactivation Date"
+
+#: .\classes\models.py:39
+msgid "الأقسام"
+msgstr "Sections"
+
+#: .\classes\serializers.py:27
+msgid "Class object must be provided in the context for creating a section."
+msgstr "Class object must be provided in the context for creating a section."
+
+#: .\classes\serializers.py:34
+msgid "لا يوجد عام دراسي حالي محدد. الرجاء تحديد عام دراسي حالي أولاً."
+msgstr "No current academic year is specified. Please specify a current academic year first."
+
+#: .\classes\serializers.py:36
+msgid "يوجد أكثر من عام دراسي حالي. الرجاء مراجعة البيانات."
+msgstr "More than one current academic year exists. Please review the data."
+
+#: .\communication\models.py:15
+msgid "إعلان"
+msgstr "Announcement"
+
+#: .\communication\models.py:16
+msgid "نشاط"
+msgstr "Activity"
+
+#: .\communication\models.py:19
+msgid "الجميع"
+msgstr "Everyone"
+
+#: .\communication\models.py:20 .\teachers\models.py:26
+msgid "المعلمون"
+msgstr "Teachers"
+
+#: .\communication\models.py:21 .\students\models.py:48
+msgid "الطلاب"
+msgstr "Students"
+
+#: .\communication\models.py:23
+msgid "قسم"
+msgstr "Section"
+
+#: .\communication\models.py:24 .\subject\models.py:79
+msgid "مادة دراسية"
+msgstr "Subject"
+
+#: .\communication\models.py:30 .\students\models.py:19 .\teachers\models.py:16
+msgid "العنوان"
+msgstr "Title"
+
+#: .\communication\models.py:31
+msgid "عنوان الإعلان أو النشاط."
+msgstr "Title of the announcement or activity."
+
+#: .\communication\models.py:35
+msgid "وصف تفصيلي للإعلان أو النشاط."
+msgstr "Detailed description of the announcement or activity."
+
+#: .\communication\models.py:42
+msgid "تم الإنشاء بواسطة"
+msgstr "Created by"
+
+#: .\communication\models.py:49 .\students\models.py:18
+msgid "النوع"
+msgstr "Type"
+
+#: .\communication\models.py:50
+msgid "هل هو إعلان عام أم نشاط محدد؟"
+msgstr "Is it a general announcement or a specific activity?"
+
+#: .\communication\models.py:57
+msgid "الجمهور المستهدف"
+msgstr "Target Audience"
+
+#: .\communication\models.py:64
+msgid "الفصل المستهدف"
+msgstr "Target Class"
+
+#: .\communication\models.py:65
+msgid "يُحدد إذا كان الجمهور المستهدف 'فصل دراسي'."
+msgstr "Specified if the target audience is 'Class'."
+
+#: .\communication\models.py:72
+msgid "القسم المستهدف"
+msgstr "Target Section"
+
+#: .\communication\models.py:73
+msgid "يُحدد إذا كان الجمهور المستهدف 'قسم'."
+msgstr "Specified if the target audience is 'Section'."
+
+#: .\communication\models.py:80
+msgid "المادة المستهدفة"
+msgstr "Target Subject"
+
+#: .\communication\models.py:81
+msgid "يُحدد إذا كان الجمهور المستهدف 'مادة دراسية'."
+msgstr "Specified if the target audience is 'Subject'."
+
+#: .\communication\models.py:86
+msgid "تاريخ النشاط"
+msgstr "Activity Date"
+
+#: .\communication\models.py:87
+msgid "تاريخ حدوث النشاط (يُستخدم إذا كان النوع 'نشاط')."
+msgstr "Date of the activity (used if type is 'Activity')."
+
+#: .\communication\models.py:91
+msgid "إعلان/نشاط"
+msgstr "Announcement/Activity"
+
+#: .\communication\models.py:92
+msgid "الإعلانات والأنشطة"
+msgstr "Announcements and Activities"
+
+#: .\communication\models.py:103 .\communication\serializers.py:71
+msgid "يجب تحديد تاريخ النشاط إذا كان نوع الخبر 'نشاط'."
+msgstr "Activity date must be specified if the news type is 'Activity'."
+
+#: .\communication\models.py:105 .\communication\serializers.py:73
+msgid "لا يمكن تحديد تاريخ النشاط إذا كان نوع الخبر 'إعلان'."
+msgstr "Activity date cannot be specified if the news type is 'Announcement'."
+
+#: .\communication\models.py:108 .\communication\serializers.py:84
+msgid "يجب تحديد فصل دراسي مستهدف عندما يكون الجمهور 'فصل دراسي'."
+msgstr "A target class must be specified when the audience is 'Class'."
+
+#: .\communication\models.py:110
+msgid "لا يمكن تحديد فصل دراسي مستهدف إلا عندما يكون الجمهور 'فصل دراسي'."
+msgstr "A target class can only be specified when the audience is 'Class'."
+
+#: .\communication\models.py:113 .\communication\serializers.py:93
+msgid "يجب تحديد قسم مستهدف عندما يكون الجمهور 'قسم'."
+msgstr "A target section must be specified when the audience is 'Section'."
+
+#: .\communication\models.py:115
+msgid "لا يمكن تحديد قسم مستهدف إلا عندما يكون الجمهور 'قسم'."
+msgstr "A target section can only be specified when the audience is 'Section'."
+
+#: .\communication\models.py:118 .\communication\serializers.py:101
+msgid "يجب تحديد مادة دراسية مستهدفة عندما يكون الجمهور 'مادة دراسية'."
+msgstr "A target subject must be specified when the audience is 'Subject'."
+
+#: .\communication\models.py:120
+msgid "لا يمكن تحديد مادة دراسية مستهدفة إلا عندما يكون الجمهور 'مادة دراسية'."
+msgstr "A target subject can only be specified when the audience is 'Subject'."
+
+#: .\communication\models.py:125
+msgid ""
+"لا يمكن تحديد هدف محدد (فصل/قسم/مادة) عندما يكون الجمهور 'الجميع' أو "
+"'معلمون' أو 'طلاب'."
+msgstr "Cannot specify a specific target (class/section/subject) when the audience is 'Everyone', 'Teachers', or 'Students'."
+
+#: .\communication\serializers.py:22
+msgid "الفصل المستهدف (بالاسم)"
+msgstr "Target Class (by name)"
+
+#: .\communication\serializers.py:29
+msgid "القسم المستهدف (بالاسم)"
+msgstr "Target Section (by name)"
+
+#: .\communication\serializers.py:36
+msgid "المادة المستهدفة (بالاسم)"
+msgstr "Target Subject (by name)"
+
+#: .\communication\serializers.py:71
+msgid "يجب تحديد تاريخ النشاط إذا كان نوع الخبر 'نشاط'."
+msgstr "Activity date must be specified if the news type is 'activity'."
+
+#: .\communication\serializers.py:73
+msgid "لا يمكن تحديد تاريخ النشاط إذا كان نوع الخبر 'إعلان'."
+msgstr "Activity date cannot be specified if the news type is 'announcement'."
+
+#: .\communication\serializers.py:84
+msgid "يجب تحديد فصل دراسي مستهدف عندما يكون الجمهور 'فصل دراسي'."
+msgstr "A target class must be specified when the audience is 'class'."
+
+#: .\communication\serializers.py:88
+#, python-brace-format
+msgid "لا يمكن تحديد {field_name_display} عندما يكون الجمهور 'فصل دراسي'."
+msgstr "Cannot specify {field_name_display} when the audience is 'class'."
+
+#: .\communication\serializers.py:93
+msgid "يجب تحديد قسم مستهدف عندما يكون الجمهور 'قسم'."
+msgstr "A target section must be specified when the audience is 'section'."
+
+#: .\communication\serializers.py:96
+#, python-brace-format
+msgid "لا يمكن تحديد {field_name_display} عندما يكون الجمهور 'قسم'."
+msgstr "Cannot specify {field_name_display} when the audience is 'section'."
+
+#: .\communication\serializers.py:101
+msgid "يجب تحديد مادة دراسية مستهدفة عندما يكون الجمهور 'مادة دراسية'."
+msgstr "A target subject must be specified when the audience is 'subject'."
+
+#: .\communication\serializers.py:104
+#, python-brace-format
+msgid "لا يمكن تحديد {field_name_display} عندما يكون الجمهور 'مادة دراسية'."
+msgstr "Cannot specify {field_name_display} when the audience is 'subject'."
+
+#: .\communication\serializers.py:117
+#, python-brace-format
+msgid ""
+"لا يمكن تحديد هدف محدد ({field_name_display}) عندما يكون الجمهور "
+"'{audience_type}'."
+msgstr "Cannot specify a specific target ({field_name_display}) when the audience is '{audience_type}'."
+
+#: .\communication\serializers.py:125
+msgid "القسم المستهدف لا ينتمي إلى الفصل الدراسي المستهدف."
+msgstr "The target section does not belong to the target class."
+
+#: .\contents\models.py:15 .\grading\models.py:29 .\schedules\models.py:33
+#: .\schedules\models.py:110 .\subject\models.py:110
+msgid "المادة الدراسية"
+msgstr "Subject"
+
+#: .\contents\models.py:29 .\schedules\models.py:47 .\schedules\models.py:124
+#: .\subject\models.py:104 .\teachers\models.py:25 .\teachers\models.py:48
+msgid "المعلم"
+msgstr "Teacher"
+
+#: .\contents\models.py:33
+msgid "عنوان المحتوى"
+msgstr "Content Title"
+
+#: .\contents\models.py:34
+msgid "عنوان وصفي للمحتوى (مثال: محاضرة 1، روابط مفيدة، ملخص الفصل الأول)."
+msgstr "Descriptive title for the content (e.g., Lecture 1, Useful Links, Chapter 1 Summary)."
+
+#: .\contents\models.py:38 .\contents\models.py:67
+msgid "محتوى المادة"
+msgstr "Material Content"
+
+#: .\contents\models.py:39
+msgid "محتويات المواد"
+msgstr "Material Contents"
+
+#: .\contents\models.py:55
+msgid "نص"
+msgstr "Text"
+
+#: .\contents\models.py:56
+msgid "رابط"
+msgstr "Link"
+
+#: .\contents\models.py:57
+msgid "ملف (عام)"
+msgstr "File (General)"
+
+#: .\contents\models.py:58
+msgid "صورة"
+msgstr "Image"
+
+#: .\contents\models.py:59
+msgid "فيديو"
+msgstr "Video"
+
+#: .\contents\models.py:60
+msgid "صوت"
+msgstr "Audio"
+
+#: .\contents\models.py:73
+msgid "نوع المرفق"
+msgstr "Attachment Type"
+
+#: .\contents\models.py:74
+msgid "اختر نوع هذا المرفق: نص، رابط، ملف، صورة، فيديو، أو صوت."
+msgstr "Choose the type of this attachment: text, link, file, image, video, or audio."
+
+#: .\contents\models.py:81
+msgid "المحتوى النصي"
+msgstr "Text Content"
+
+#: .\contents\models.py:82
+msgid "اكتب المحتوى النصي إذا كان نوع المرفق 'نص'."
+msgstr "Write the text content if the attachment type is 'text'."
+
+#: .\contents\models.py:88
+msgid "رابط URL"
+msgstr "URL Link"
+
+#: .\contents\models.py:89
+msgid "أدخل رابط URL إذا كان نوع المرفق 'رابط'."
+msgstr "Enter a URL link if the attachment type is 'link'."
+
+#: .\contents\models.py:95
+msgid "ملف المرفق"
+msgstr "Attachment File"
+
+#: .\contents\models.py:96
+msgid "رفع ملف إذا كان نوع المرفق 'ملف'، 'صورة'، 'فيديو'، أو 'صوت'."
+msgstr "Upload a file if the attachment type is 'file', 'image', 'video', or 'audio'."
+
+#: .\contents\models.py:103
+msgid "الوصف"
+msgstr "Description"
+
+#: .\contents\models.py:104
+msgid "وصف قصير للمرفق."
+msgstr "Short description for the attachment."
+
+#: .\contents\models.py:108
+msgid "مرفق المحتوى"
+msgstr "Content Attachment"
+
+#: .\contents\models.py:109
+msgid "مرفقات المحتوى"
+msgstr "Content Attachments"
+
+#: .\contents\models.py:128
+msgid "يجب إدخال محتوى نصي إذا كان نوع المرفق 'نص'."
+msgstr "Text content must be entered if the attachment type is 'text'."
+
+#: .\contents\models.py:130
+msgid "لا يمكن أن يحتوي المرفق على رابط أو ملف إذا كان نوعه 'نص'."
+msgstr "Attachment cannot contain a link or file if its type is 'text'."
+
+#: .\contents\models.py:133
+msgid "يجب إدخال رابط URL إذا كان نوع المرفق 'رابط'."
+msgstr "A URL link must be entered if the attachment type is 'link'."
+
+#: .\contents\models.py:135
+msgid "لا يمكن أن يحتوي المرفق على نص أو ملف إذا كان نوعه 'رابط'."
+msgstr "Attachment cannot contain text or a file if its type is 'link'."
+
+#: .\contents\models.py:138
+msgid "يجب رفع ملف إذا كان نوع المرفق 'ملف'، 'صورة'، 'فيديو'، أو 'صوت'."
+msgstr "A file must be uploaded if the attachment type is 'file', 'image', 'video', or 'audio'."
+
+#: .\contents\models.py:140
+msgid ""
+"لا يمكن أن يحتوي المرفق على نص أو رابط إذا كان نوعه 'ملف'، 'صورة'، 'فيديو'، "
+"أو 'صوت'."
+msgstr "Attachment cannot contain text or a link if its type is 'file', 'image', 'video', or 'audio'."
+
+#: .\contents\models.py:145
+msgid ""
+"يجب أن يكون الملف صورة (png, jpg, jpeg, gif, bmp, tiff) إذا كان نوع المرفق "
+"'صورة'."
+msgstr "The file must be an image (png, jpg, jpeg, gif, bmp, tiff) if the attachment type is 'image'."
+
+#: .\contents\models.py:148
+msgid ""
+"يجب أن يكون الملف فيديو (mp4, avi, mov, wmv, flv, webm) إذا كان نوع المرفق "
+"'فيديو'."
+msgstr "The file must be a video (mp4, avi, mov, wmv, flv, webm) if the attachment type is 'video'."
+
+#: .\contents\models.py:151
+msgid ""
+"يجب أن يكون الملف صوتًا (mp3, wav, ogg, aac, flac) إذا كان نوع المرفق 'صوت'."
+msgstr "The file must be an audio (mp3, wav, ogg, aac, flac) if the attachment type is 'audio'."
+
+#: .\contents\models.py:153
+msgid "نوع المرفق الأساسي غير صالح."
+msgstr "Invalid primary attachment type."
+
+#: .\enrollment\models.py:14
+msgid "هل التسجيل مفتوح حالياً؟"
+msgstr "Is registration currently open?"
+
+#: .\enrollment\models.py:15
+msgid "التحكم العام في فتح أو إغلاق التسجيل للمدرسة بأكملها."
+msgstr "General control for opening or closing registration for the entire school."
+
+#: .\enrollment\models.py:19
+msgid "إعداد التسجيل العام"
+msgstr "General Registration Setting"
+
+#: .\enrollment\models.py:20
+msgid "إعدادات التسجيل العام"
+msgstr "General Registration Settings"
+
+#: .\enrollment\models.py:23
+#, python-brace-format
+msgid "التسجيل مفتوح: {}"
+msgstr "Registration open: {}"
+
+#: .\enrollment\models.py:23
+msgid "نعم"
+msgstr "Yes"
+
+#: .\enrollment\models.py:23
+msgid "لا"
+msgstr "No"
+
+#: .\enrollment\models.py:27
+msgid ""
+"يجب أن يكون هناك سجل واحد فقط لإعدادات التسجيل العالمية. الرجاء تعديل السجل "
+"الحالي بدلاً من إنشاء سجل جديد."
+msgstr "There should be only one record for global registration settings. Please modify the current record instead of creating a new one."
+
+#: .\enrollment\signals.py:12
+msgid "جارٍ تهيئة إعدادات التسجيل والمجموعات الافتراضية..."
+msgstr "Initializing registration settings and default groups..."
+
+#: .\enrollment\signals.py:16
+msgid "تم إنشاء سجل إعدادات التسجيل العامة الافتراضي."
+msgstr "Default general registration settings record created."
+
+#: .\grading\models.py:12
+msgid "اختبار منتصف الفصل"
+msgstr "Midterm Exam"
+
+#: .\grading\models.py:13
+msgid "اختبار نهائي"
+msgstr "Final Exam"
+
+#: .\grading\models.py:14
+msgid "اختبار قصير"
+msgstr "Quiz"
+
+#: .\grading\models.py:15
+msgid "واجب"
+msgstr "Assignment"
+
+#: .\grading\models.py:46
+msgid "نوع الاختبار"
+msgstr "Exam Type"
+
+#: .\grading\models.py:47
+msgid "نوع الاختبار أو التقييم (مثال: اختبار نصفي، واجب، نهائي)."
+msgstr "Type of exam or assessment (e.g., Midterm, Assignment, Final)."
+
+#: .\grading\models.py:50
+msgid "تاريخ الاختبار"
+msgstr "Exam Date"
+
+#: .\grading\models.py:51
+msgid "التاريخ الذي أقيم فيه الاختبار."
+msgstr "The date on which the exam was held."
+
+#: .\grading\models.py:56
+msgid "الدرجة الكلية"
+msgstr "Total Grade"
+
+#: .\grading\models.py:57
+msgid "الدرجة الكلية الممكنة لهذا الاختبار."
+msgstr "The total possible grade for this exam."
+
+#: .\grading\models.py:65
+msgid "الصف المستهدف"
+msgstr "Target Class"
+
+#: .\grading\models.py:66
+msgid "الصف الذي يستهدفه هذا الاختبار (إذا لم يكن لجميع الصفوف)."
+msgstr "The class targeted by this exam (if not for all classes)."
+
+#: .\grading\models.py:73 .\subject\serializers.py:26
+msgid "الشعبة المستهدفة"
+msgstr "Target Section"
+
+#: .\grading\models.py:74
+msgid "الشعبة المحددة داخل الصف المستهدف."
+msgstr "The specific section within the target class."
+
+#: .\grading\models.py:81
+msgid "نوع التخصص"
+msgstr "Specialization Type"
+
+#: .\grading\models.py:82
+msgid "نوع التخصص المستهدف (مثال: علمي، أدبي) ضمن الصف المحدد."
+msgstr "Target specialization type (e.g., Scientific, Literary) within the specified class."
+
+#: .\grading\models.py:86
+msgid "اختبار"
+msgstr "Exam"
+
+#: .\grading\models.py:87
+msgid "الاختبارات"
+msgstr "Exams"
+
+#: .\grading\models.py:120
+msgid "لا يمكن تحديد تاريخ اختبار مستقبلي."
+msgstr "Cannot set a future exam date."
+
+#: .\grading\models.py:124
+msgid "يجب أن تكون الدرجة الكلية للاختبار أكبر من صفر."
+msgstr "The total grade for the exam must be greater than zero."
+
+#: .\grading\models.py:133
+msgid "الشعبة المستهدفة يجب أن تنتمي إلى الصف المستهدف المحدد."
+msgstr "The target section must belong to the specified target class."
+
+#: .\grading\models.py:137
+msgid ""
+"لا يمكن تحديد نوع تخصص للامتحان عند استهداف شعبة محددة. تخصص الشعبة هو "
+"المحدد."
+msgstr "Cannot specify a specialization type for the exam when targeting a specific section. The section's specialization is determined."
+
+#: .\grading\models.py:144
+msgid "عند تحديد نوع التخصص (مثل علمي أو أدبي)، يجب تحديد الصف المستهدف."
+msgstr "When a specialization type (e.g., Scientific or Literary) is specified, the target class must also be specified."
+
+#: .\grading\models.py:225
+msgid "الاختبار"
+msgstr "Exam"
+
+#: .\grading\models.py:230
+msgid "الدرجة المحرزة"
+msgstr "Achieved Grade"
+
+#: .\grading\models.py:231
+msgid "الدرجة التي حصل عليها الطالب في هذا الاختبار."
+msgstr "The grade the student obtained in this exam."
+
+#: .\grading\models.py:236
+msgid "من أصل"
+msgstr "Out of"
+
+#: .\grading\models.py:237
+msgid "الدرجة القصوى الممكنة التي يمكن الحصول عليها في هذا التقييم."
+msgstr "The maximum possible grade that can be obtained in this assessment."
+
+#: .\grading\models.py:244
+msgid "تم التقييم بواسطة"
+msgstr "Assessed by"
+
+#: .\grading\models.py:250
+msgid "تاريخ ووقت التقييم"
+msgstr "Assessment Date and Time"
+
+#: .\grading\models.py:251
+msgid "التاريخ والوقت الذي تم فيه تسجيل الدرجة."
+msgstr "The date and time the grade was recorded."
+
+#: .\grading\models.py:255
+msgid "درجة"
+msgstr "Grade"
+
+#: .\grading\models.py:256
+msgid "الدرجات"
+msgstr "Grades"
+
+#: .\grading\models.py:275
+#, python-brace-format
+msgid "لا يمكن أن تكون الدرجة المحرزة أكبر من الدرجة القصوى لهذا التقييم ({})."
+msgstr "The achieved grade cannot be greater than the maximum grade for this assessment ({})."
+
+#: .\grading\models.py:281
+msgid "لا يمكن أن تكون الدرجة المحرزة سالبة."
+msgstr "The achieved grade cannot be negative."
+
+#: .\grading\models.py:287
+msgid "يجب أن تكون الدرجة القصوى للتقييم (out of) أكبر من صفر."
+msgstr "The maximum grade for the assessment (out of) must be greater than zero."
+
+#: .\grading\models.py:293
+msgid "لا يمكن تحديد تاريخ ووقت تقييم مستقبلي."
+msgstr "Cannot set a future assessment date and time."
+
+#: .\schedules\models.py:14 .\schedules\models.py:97 .\teachers\models.py:35
+msgid "الاثنين"
+msgstr "Monday"
+
+#: .\schedules\models.py:15 .\schedules\models.py:98 .\teachers\models.py:36
+msgid "الثلاثاء"
+msgstr "Tuesday"
+
+#: .\schedules\models.py:16 .\schedules\models.py:99 .\teachers\models.py:37
+msgid "الأربعاء"
+msgstr "Wednesday"
+
+#: .\schedules\models.py:17 .\schedules\models.py:100 .\teachers\models.py:38
+msgid "الخميس"
+msgstr "Thursday"
+
+#: .\schedules\models.py:18 .\schedules\models.py:101 .\teachers\models.py:39
+msgid "الجمعة"
+msgstr "Friday"
+
+#: .\schedules\models.py:19 .\schedules\models.py:102 .\teachers\models.py:40
+msgid "السبت"
+msgstr "Saturday"
+
+#: .\schedules\models.py:20 .\schedules\models.py:103 .\teachers\models.py:41
+msgid "الأحد"
+msgstr "Sunday"
+
+#: .\schedules\models.py:24
+msgid "مقترح"
+msgstr "Proposed"
+
+#: .\schedules\models.py:25 .\students\models.py:29
+msgid "مقبول"
+msgstr "Accepted"
+
+#: .\schedules\models.py:26 .\students\models.py:30
+msgid "مرفوض"
+msgstr "Rejected"
+
+#: .\schedules\models.py:65 .\schedules\models.py:142
+msgid "اليوم الذي ستقام فيه الحصة."
+msgstr "The day the class will be held."
+
+#: .\schedules\models.py:69 .\schedules\models.py:146
+msgid "الفترة/الحصة"
+msgstr "Period/Class"
+
+#: .\schedules\models.py:70 .\schedules\models.py:147
+msgid "توقيت الحصة أو رقم الفترة (مثال: '08:00-09:00' أو 'الفترة الأولى')."
+msgstr "Class timing or period number (e.g., '08:00-09:00' or 'First Period')."
+
+#: .\schedules\models.py:77
+msgid "حالة المقترح: مقترح، مقبول، مرفوض."
+msgstr "Proposal status: Proposed, Accepted, Rejected."
+
+#: .\schedules\models.py:81
+msgid "جدول حصص مقترح"
+msgstr "Proposed Class Schedule"
+
+#: .\schedules\models.py:82
+msgid "جداول الحصص المقترحة"
+msgstr "Proposed Class Schedules"
+
+#: .\schedules\models.py:151
+msgid "جدول حصص معتمد"
+msgstr "Approved Class Schedule"
+
+#: .\schedules\models.py:152
+msgid "جداول الحصص المعتمدة"
+msgstr "Approved Class Schedules"
+
+#: .\schedules\models.py:179
+msgid "هذا المعلم لديه حصة أخرى في نفس اليوم والفترة والفصل الدراسي المحدد."
+msgstr "This teacher has another class on the same day, period, and specified semester."
+
+#: .\schedules\models.py:194
+msgid "هذا القسم لديه حصة أخرى في نفس اليوم والفترة والفصل الدراسي المحدد."
+msgstr "This section has another class on the same day, period, and specified semester."
+
+#: .\students\models.py:9
+msgid "ذكر"
+msgstr "Male"
+
+#: .\students\models.py:10
+msgid "أنثى"
+msgstr "Female"
+
+#: .\students\models.py:11
+msgid "أخرى"
+msgstr "Other"
+
+#: .\students\models.py:16
+msgid "رقم التسجيل"
+msgstr "Registration Number"
+
+#: .\students\models.py:16
+msgid "رقم تسجيل الطالب الفريد في المدرسة. يتم إنشاؤه تلقائياً."
+msgstr "Unique student registration number in the school. Automatically generated."
+
+#: .\students\models.py:17
+msgid "اسم الأب"
+msgstr "Father's Name"
+
+#: .\students\models.py:20
+msgid "رقم هاتف ولي الأمر"
+msgstr "Parent's Phone Number"
+
+#: .\students\models.py:20
+msgid "رقم هاتف الأب أو الأم للتواصل."
+msgstr "Father's or mother's phone number for contact."
+
+#: .\students\models.py:22
+msgid "جديد"
+msgstr "New"
+
+#: .\students\models.py:23
+msgid "قديم"
+msgstr "Old"
+
+#: .\students\models.py:25 .\students\models.py:33
+msgid "حالة الطالب"
+msgstr "Student Status"
+
+#: .\students\models.py:28
+msgid "معلق"
+msgstr "Pending"
+
+#: .\students\models.py:29
+msgid "مقبول"
+msgstr "Accepted"
+
+#: .\students\models.py:30
+msgid "مرفوض"
+msgstr "Rejected"
+
+#: .\students\models.py:41
+msgid "المرحلة الدراسية"
+msgstr "Academic Level"
+
+#: .\students\models.py:43
+msgid "تاريخ الميلاد"
+msgstr "Date of Birth"
+
+#: .\students\models.py:44
+msgid "صورة الطالب"
+msgstr "Student Photo"
+
+#: .\students\models.py:47
+msgid "الطالب"
+msgstr "Student"
+
+#: .\students\models.py:48
+msgid "الطلاب"
+msgstr "Students"
+
+#: .\students\models.py:75
+msgid "لا يوجد عام دراسي حالي نشط لإنشاء رقم تسجيل تلقائي."
+msgstr "There is no active current academic year to generate an automatic registration number."
+
+#: .\subject\models.py:22
+msgid "الفصل الدراسي المرتبط"
+msgstr "Associated Semester"
+
+#: .\subject\models.py:23
+msgid "الفصل الدراسي الذي تنتمي إليه هذه المادة (مثال: الصف الأول)."
+msgstr "The semester to which this subject belongs (e.g., First Grade)."
+
+#: .\subject\models.py:30
+msgid " الشعبة"
+msgstr "Section"
+
+#: .\subject\models.py:31
+msgid "القسم الذي تنتمي إليه هذه المادة (مثال: القسم أ)."
+msgstr "The section to which this subject belongs (e.g., Section A)."
+
+#: .\subject\models.py:38
+msgid "نوع المسار"
+msgstr "Stream Type"
+
+#: .\subject\models.py:39
+msgid "نوع المسار إذا كانت المادة خاصة بمسار معين (علمي/أدبي)."
+msgstr "Stream type if the subject is specific to a certain stream (Scientific/Literary)."
+
+#: .\subject\models.py:43
+msgid "اسم المادة"
+msgstr "Subject Name"
+
+#: .\subject\models.py:48
+msgid "الوصف التفصيلي للمادة"
+msgstr "Detailed Subject Description"
+
+#: .\subject\models.py:52
+msgid "هل المادة نشطة؟"
+msgstr "Is the subject active?"
+
+#: .\subject\models.py:53
+msgid "يشير إلى ما إذا كانت هذه المادة متاحة للتدريس."
+msgstr "Indicates whether this subject is available for teaching."
+
+#: .\subject\models.py:60
+msgid "ملف المنهج الدراسي PDF"
+msgstr "Curriculum PDF File"
+
+#: .\subject\models.py:61
+msgid "رفع ملف المنهج الدراسي أو مواد مساعدة بصيغة PDF."
+msgstr "Upload a curriculum file or supporting materials in PDF format."
+
+#: .\subject\models.py:65 .\subject\models.py:73
+msgid "عدد الحصص الأسبوعية الافتراضي"
+msgstr "Default Weekly Class Count"
+
+#: .\subject\models.py:67 .\subject\models.py:74
+msgid ""
+"عدد الحصص الأسبوعية الافتراضي لهذه المادة، يستخدم عند عدم تحديد عدد معين "
+"للشعبة."
+msgstr "Default number of weekly classes for this subject, used when no specific number is set for the section."
+
+#: .\subject\models.py:79
+msgid "مادة دراسية"
+msgstr "Subject"
+
+#: .\subject\models.py:80
+msgid "المواد الدراسية"
+msgstr "Subjects"
+
+#: .\subject\models.py:104
+msgid "المعلم"
+msgstr "Teacher"
+
+#: .\subject\models.py:110
+msgid "المادة الدراسية"
+msgstr "Subject"
+
+#: .\subject\models.py:113
+msgid "الساعات الأسبوعية"
+msgstr "Weekly Hours"
+
+#: .\subject\models.py:114
+msgid "عدد الساعات الأسبوعية التي يدرسها المعلم لهذه المادة."
+msgstr "The number of weekly hours the teacher teaches for this subject."
+
+#: .\subject\models.py:119
+msgid "مادة المعلم"
+msgstr "Teacher Subject"
+
+#: .\subject\models.py:120
+msgid "مواد المعلمين"
+msgstr "Teacher Subjects"
+
+#: .\subject\models.py:136
+msgid "الشعبة"
+msgstr "Section"
+
+#: .\subject\models.py:142
+msgid "المادة"
+msgstr "Subject"
+
+#: .\subject\models.py:146
+msgid "عدد الحصص الأسبوعية المطلوبة لهذه المادة في هذه الشعبة"
+msgstr "Required weekly classes for this subject in this section"
+
+#: .\subject\models.py:147
+msgid "عدد الحصص الأسبوعية المطلوبة"
+msgstr "Required Weekly Classes"
+
+#: .\subject\models.py:152
+msgid "متطلب حصص الشعبة"
+msgstr "Section Class Requirement"
+
+#: .\subject\models.py:153
+msgid "متطلبات حصص الشعب"
+msgstr "Section Class Requirements"
+
+#: .\subject\models.py:158
+msgid "حصص أسبوعياً"
+msgstr "Classes Weekly"
+
+#: .\subject\serializers.py:22
+msgid "الفصل الدراسي المستهدف"
+msgstr "Target Class"
+
+#: .\subject\serializers.py:26
+msgid "الشعبة المستهدفة"
+msgstr "Target Section"
+
+#: .\subject\serializers.py:66
+msgid "المادة يجب أن ترتبط بصف دراسي (class_obj) أو شعبة محددة (section)."
+msgstr "Subject must be linked to a class object (class_obj) or a specific section (section)."
+
+#: .\subject\serializers.py:74
+msgid "عند تحديد شعبة، يجب تحديد الصف الدراسي المرتبطة به."
+msgstr "When a section is specified, the associated class must also be specified."
+
+#: .\subject\serializers.py:80
+msgid "الشعبة المحددة لا تنتمي للفصل الدراسي المدخل."
+msgstr "The specified section does not belong to the entered class."
+
+#: .\subject\serializers.py:91
+msgid "نوع مسار المادة لا يتوافق مع نوع مسار الشعبة المحددة."
+msgstr "The subject's stream type does not match the specified section's stream type."
+
+#: .\subject\serializers.py:103
+msgid ""
+"لا يمكن ربط مادة عامة (بدون مسار محدد أو بمسار 'عام') بشعبة واحدة محددة. "
+"المادة العامة تُربط بجميع شعب الصف تلقائياً."
+msgstr "A general subject (without a specific stream or with a 'general' stream) cannot be linked to a single specific section. A general subject is automatically linked to all sections of the class."
+
+#: .\subject\serializers.py:111
+msgid "نوع المسار المدخل غير صالح."
+msgstr "Invalid stream type entered."
+
+#: .\subject\serializers.py:119
+msgid ""
+"نوع المسار (stream_type) يجب أن يُحدد فقط عند ربط المادة بصف دراسي "
+"(class_obj)."
+msgstr "The stream type must be specified only when linking the subject to a class object (class_obj)."
+
+#: .\subject\serializers.py:125
+msgid "عدد الحصص الأسبوعية الافتراضي يجب أن يكون رقماً صحيحاً وموجباً."
+msgstr "The default weekly class count must be a positive integer."
+
+#: .\teachers\models.py:11
+msgid "المستخدم المرتبط"
+msgstr "Associated User"
+
+#: .\teachers\models.py:16
+msgid "العنوان"
+msgstr "Title"
+
+#: .\teachers\models.py:22
+msgid "التخصص"
+msgstr "Specialization"
+
+#: .\teachers\models.py:25
+msgid "المعلم"
+msgstr "Teacher"
+
+#: .\teachers\models.py:26
+msgid "المعلمون"
+msgstr "Teachers"
+
+#: .\teachers\models.py:35
+msgid "الاثنين"
+msgstr "Monday"
+
+#: .\teachers\models.py:36
+msgid "الثلاثاء"
+msgstr "Tuesday"
+
+#: .\teachers\models.py:37
+msgid "الأربعاء"
+msgstr "Wednesday"
+
+#: .\teachers\models.py:38
+msgid "الخميس"
+msgstr "Thursday"
+
+#: .\teachers\models.py:39
+msgid "الجمعة"
+msgstr "Friday"
+
+#: .\teachers\models.py:40
+msgid "السبت"
+msgstr "Saturday"
+
+#: .\teachers\models.py:41
+msgid "الأحد"
+msgstr "Sunday"
+
+#: .\teachers\models.py:48
+msgid "المعلم"
+msgstr "Teacher"
+
+#: .\teachers\models.py:52
+msgid "يوم الأسبوع"
+msgstr "Day of the Week"
+
+#: .\teachers\models.py:53
+msgid "اليوم من الأسبوع الذي يكون فيه المعلم متاحًا بشكل عام."
+msgstr "The day of the week when the teacher is generally available."
+
+#: .\teachers\models.py:57
+msgid "توفر المعلم"
+msgstr "Teacher Availability"
+
+#: .\teachers\models.py:58
+msgid "توفر المعلمين"
+msgstr "Teacher Availabilities"

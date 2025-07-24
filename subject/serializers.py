@@ -30,7 +30,7 @@ class SubjectSerializer(serializers.ModelSerializer):
     section_name = serializers.CharField(source='section.name', read_only=True)
     stream_type_display = serializers.CharField(source='get_stream_type_display', read_only=True)
 
-    pdf_file = serializers.SerializerMethodField()
+    # pdf_file = serializers.SerializerMethodField()
 
     class Meta:
         model = Subject
@@ -44,10 +44,10 @@ class SubjectSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ('created_at', 'updated_at')
 
-    def get_pdf_file(self, obj):
-        if obj.pdf_file and hasattr(obj.pdf_file, 'url'):
-            return obj.pdf_file.url
-        return None
+    # def get_pdf_file(self, obj):
+    #     if obj.pdf_file and hasattr(obj.pdf_file, 'url'):
+    #         return obj.pdf_file.url
+    #     return None
 
     def validate(self, data):
         class_obj = data.get('class_obj')
@@ -125,3 +125,26 @@ class SubjectSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_("عدد الحصص الأسبوعية الافتراضي يجب أن يكون رقماً صحيحاً وموجباً."))
 
         return data
+    
+from .models import Subject, TeacherSubject # تأكد من استيراد TeacherSubject و Subject
+
+class TeacherSubjectAssignmentSerializer(serializers.Serializer):
+    """
+    سيريالايزر يستخدم لتلقي بيانات ربط المادة بالمعلم (لعمليات الإنشاء/التحديث)
+    """
+    subject_id = serializers.PrimaryKeyRelatedField(
+        queryset=Subject.objects.all(),
+        label=_("معرف المادة"),
+        help_text=_("المعرف الفريد للمادة المراد ربطها بالمعلم.")
+    )
+    weekly_hours = serializers.IntegerField(
+        min_value=1,
+        max_value=30, 
+        label=_("الساعات الأسبوعية"),
+        help_text=_("عدد الحصص الأسبوعية التي يدرسها المعلم لهذه المادة.")
+    )
+
+    def validate_subject_id(self, value):
+        if not Subject.objects.filter(id=value.id).exists():
+            raise serializers.ValidationError(_("المادة المحددة غير موجودة."))
+        return value

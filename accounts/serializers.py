@@ -24,7 +24,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from enrollment.models import RegistrationSetting
 from .tokens import get_tokens_for_user
 User = get_user_model()
-# from subject.serializers import SubjectAssignmentSerializer
+from subject.serializers import *
 from subject.models import Subject, TeacherSubject
 
 
@@ -125,6 +125,7 @@ class StudentloginSerializer(TokenObtainPairSerializer):
             raise serializers.ValidationError(
                 {
                     'detail': _('يرجى تأكيد رقم هاتفك لإكمال عملية تسجيل الدخول.'),
+                    'phone_verified': user.is_phone_verified,
                 }
             )
 
@@ -140,9 +141,10 @@ class StudentloginSerializer(TokenObtainPairSerializer):
 
         data['first_name'] = user.first_name
         data['last_name'] = user.last_name
-        user_groups = [group.name for group in user.groups.all()]
-        data['groups'] = user_groups 
         data['role'] = 'student' 
+        data['first_name'] = user.first_name
+        data['last_name'] = user.last_name
+        data['phone_number'] = str(user.phone_number) 
 
         return data
 
@@ -150,16 +152,17 @@ class TeacherRegistrationSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(max_length=100, required=True, label="الاسم الأول")
     last_name = serializers.CharField(max_length=100, required=True, label="اسم العائلة")
     specialization= serializers.CharField(max_length=100, required=True)
-    # subjects_to_teach = SubjectAssignmentSerializer(
-    #     many=True, 
-    #     required=False, # يمكن أن يكون المعلم بدون مواد في البداية
-    #     label=_("المواد المراد تدريسها")
-    # )
+    subjects_to_teach = TeacherSubjectAssignmentSerializer(
+        many=True,
+        required=False, 
+        label=_("المواد المراد تدريسها")
+    )
+
     class Meta:
         model = User
         fields = [
             'phone_number',
-            'first_name', 'last_name', 'specialization','subjects_to_teach',
+            'first_name', 'last_name', 'specialization', 'subjects_to_teach',
         ]
     def validate(self, attrs):
         if User.objects.filter(phone_number=attrs['phone_number']).exists():
@@ -187,18 +190,11 @@ class TeacherRegistrationSerializer(serializers.ModelSerializer):
         for subject_assignment in subjects_to_teach_data:
             subject_id = subject_assignment['subject_id']
             weekly_hours = subject_assignment['weekly_hours']
-
-            try:
-                subject = Subject.objects.get(id=subject_id)
-            except Subject.DoesNotExist:
-                # يمكنك التعامل مع هذا الخطأ هنا، مثل تسجيله أو تخطيه.
-                # في هذه الحالة، يجب أن يتم التحقق من وجود المواد في `SubjectAssignmentSerializer`
-                # لذا هذا الجزء هو كحماية إضافية.
-                continue 
             
+
             TeacherSubject.objects.create(
                 teacher=teacher, 
-                subject=subject, 
+                subject=subject_id, 
                 weekly_hours=weekly_hours
             )
         return user
@@ -384,29 +380,35 @@ class AdminOrSuperuserLoginSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
 
-        # إضافة معلومات الدور إلى التوكن (اختياري لكن مفيد)
         if user.is_superuser:
             token['role'] = 'superuser'
         elif user.is_staff:
             token['role'] = 'admin'
         else:
-            return "you can not access this" # أو 'regular_user' إذا كان هذا السيريالايزر يستخدم لغير المدراء
+            return "you can not access this" 
+        
+        token['first_name'] = user.first_name
+        token['last_name'] = user.last_name
+        token['phone_number'] = str(user.phone_number) 
+
         return token
 
     def validate(self, attrs):
-        data = super().validate(attrs) # تقوم هذه الخطوة بالمصادقة القياسية للمستخدم
+        data = super().validate(attrs) 
 
-        user = self.user # المستخدم الذي تمت مصادقته بواسطة TokenObtainPairSerializer
+        user = self.user 
 
         if not user.is_staff and not user.is_superuser:
-            # إذا لم يكن المستخدم مشرفاً عاماً ولا مسؤولاً، ارفض تسجيل الدخول.
             raise AuthenticationFailed(_("غير مصرح: هذا الحساب ليس حساب مسؤول أو مشرف عام."))
 
-        # إضافة الدور إلى بيانات الاستجابة
         if user.is_superuser:
             data['role'] = 'superuser'
         elif user.is_staff:
             data['role'] = 'admin'
+
+        data['first_name'] = user.first_name
+        data['last_name'] = user.last_name
+        data['phone_number'] = str(user.phone_number) 
 
         return data
     
@@ -420,13 +422,17 @@ class TeacherLoginSerializer(BaseLoginSerializer):
         user = self.user 
         if not user.groups.filter(name='Teacher').exists():
             raise serializers.ValidationError(_("هذا الحساب ليس حساب معلم."))
-            
+        data['first_name'] = user.first_name
+        data['last_name'] = user.last_name
+        data['phone_number'] = str(user.phone_number) 
+
         return data
 
     def save(self, **kwargs):
-        response_data = super().save(**kwargs)
-        response_data['user_role'] = 'teacher'
-        return response_data
+        data = super().save(**kwargs)
+        data['user_role'] = 'teacher'
+        
+        return data
 
 class OTPSendSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=15, required=True, label=_("رقم الهاتف"))
@@ -434,7 +440,6 @@ class OTPSendSerializer(serializers.Serializer):
 
     def validate(self, data):
         phone_number = data.get('phone_number')
-        password = data.get('password')
 
         try:
             user = User.objects.get(phone_number=phone_number)
@@ -442,21 +447,14 @@ class OTPSendSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError(_("رقم الهاتف غير مسجل."))
 
-        if password:
-            if not user.check_password(password):
-                raise serializers.ValidationError(_("كلمة المرور غير صحيحة."))
-
-            if not user.groups.filter(name='Student').exists():
-                raise serializers.ValidationError(_("هذا الحساب ليس حساب طالب."))
-            
-            self.user_role = 'student'
-
         else:
             
             if user.groups.filter(name='Manager').exists():
                 self.user_role = 'admin'
             elif user.groups.filter(name='Teacher').exists():
                 self.user_role = 'teacher'
+            if user.groups.filter(name='Student').exists():
+                self.user_role = 'student'            
             else:
                 raise serializers.ValidationError(_("لا تسطيع التسجيل في المدرسة بهذه الطريقة."))
 
@@ -482,11 +480,9 @@ class OTPVerifySerializer(serializers.Serializer):
         phone_number = attrs.get('phone_number')
         otp_code = attrs.get('otp_code')
         purpose = attrs.get('purpose')
-
-
         try:
             user = User.objects.get(phone_number=phone_number)
-            self.user = user # حفظ المستخدم للوصول إليه في دالة create
+            self.user = user 
         except User.DoesNotExist:
             raise serializers.ValidationError(_("رقم الهاتف غير مسجل."))
 
