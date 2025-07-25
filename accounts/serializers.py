@@ -451,9 +451,11 @@ class OTPSendSerializer(serializers.Serializer):
             
             if user.groups.filter(name='Manager').exists():
                 self.user_role = 'admin'
+                print('Manager')
             elif user.groups.filter(name='Teacher').exists():
                 self.user_role = 'teacher'
-            if user.groups.filter(name='Student').exists():
+                print('Teacher')
+            elif user.groups.filter(name='Student').exists():
                 self.user_role = 'student'            
             else:
                 raise serializers.ValidationError(_("لا تسطيع التسجيل في المدرسة بهذه الطريقة."))
