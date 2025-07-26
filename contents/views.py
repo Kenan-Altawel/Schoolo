@@ -7,6 +7,9 @@ from .models import ContentAttachment,SubjectContent
 from rest_framework.permissions import AllowAny
 from rest_framework import permissions 
 from accounts.permissions import *
+from django.db.models import Q
+from teachers.models import Teacher
+from django.utils.translation import gettext_lazy as _
 
 class IsAuthenticatedAndTeacherForWrites(permissions.BasePermission):
    
@@ -27,45 +30,93 @@ class SubjectContentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedAndTeacherForWrites] 
 
     def get_queryset(self):
-        """
-        تقوم بتصفية المحتوى بناءً على teacher_id, subject_id, و section_id
-        المُرسلة كمعلمات استعلام (query parameters).
-        """
         queryset = SubjectContent.objects.all()
+        user = self.request.user
 
-        teacher_id = self.request.query_params.get('teacher_id', None)
-        subject_id = self.request.query_params.get('subject_id', None)
-        section_id = self.request.query_params.get('section_id', None)
-        title_search = self.request.query_params.get('title_search', None)
-        class_id = self.request.query_params.get('class_id', None)
-        
+        if not user.is_authenticated:
+            return SubjectContent.objects.none()
 
-        if teacher_id is not None:
-            queryset = queryset.filter(teacher_id=teacher_id)
-        
-        if subject_id is not None:
-            queryset = queryset.filter(subject_id=subject_id)
+        user_specific_filter = Q()
+
+        is_teacher_role = user.is_teacher()
+        is_student_role = user.is_student()
+        is_admin_or_superuser = user.is_superuser or user.is_admin()
+
+        if is_admin_or_superuser:
+            teacher_id_param = self.request.query_params.get('teacher_id', None)
+            if teacher_id_param:
+                try:
+                    teacher_instance_for_filter = Teacher.objects.get(user__id=teacher_id_param)
+                    queryset = queryset.filter(teacher=teacher_instance_for_filter)
+                except Teacher.DoesNotExist:
+                    return SubjectContent.objects.none() # أو يمكنك تجاهل الفلتر
             
-        if section_id is not None:
-            queryset = queryset.filter(section_id=section_id)
-        
-        if class_id is not None:
-            queryset = queryset.filter(section__class_obj__id=class_id)
+            return self._apply_common_filters(queryset).distinct()
 
-        if title_search is not None:
-            queryset = queryset.filter(title__icontains=title_search)
 
+        elif is_teacher_role:
+            try:
+                teacher_instance = Teacher.objects.get(user=user)
+                queryset = queryset.filter(teacher=teacher_instance) 
+            except Teacher.DoesNotExist:
+                return SubjectContent.objects.none()
             
-        return queryset
+            return self._apply_common_filters(queryset).distinct()
 
-   
+
+        # 3. منطق الطالب: يرى فقط المحتوى المرتبط بمواده وشعبته وصفه
+        elif is_student_role:
+            student_filter_conditions = Q() # كائن Q لجمع شروط الطالب
+
+            # المحتوى المرتبط بفصل الطالب
+            if hasattr(user, 'current_class') and user.current_class:
+                student_filter_conditions |= Q(section__class_obj=user.current_class)
+
+            # المحتوى المرتبط بقسم الطالب
+            if hasattr(user, 'current_section') and user.current_section:
+                student_filter_conditions |= Q(section=user.current_section)
+
+            # المحتوى المرتبط بالمواد المسجل بها الطالب
+            if hasattr(user, 'enrolled_subjects') and user.enrolled_subjects.exists():
+                subject_ids = user.enrolled_subjects.values_list('id', flat=True)
+                student_filter_conditions |= Q(subject__id__in=subject_ids)
+            
+            
+            return self._apply_common_filters(queryset).distinct()
+
+       
+        else:
+            return SubjectContent.objects.none()
+    def perform_create(self, serializer):
+        try:
+            teacher_instance = Teacher.objects.get(user=self.request.user)
+        except Teacher.DoesNotExist:
+            raise ValueError(_("المستخدم الحالي ليس لديه حساب معلم مرتبط.")) # يجب ألا يحدث هذا بسبب الصلاحية
+        serializer.save(teacher=teacher_instance)
+
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    def _apply_common_filters(self, queryset):
+        subject_id_param = self.request.query_params.get('subject_id', None)
+        section_id_param = self.request.query_params.get('section_id', None)
+        class_id_param = self.request.query_params.get('class_id', None)
+        title_search_param = self.request.query_params.get('title_search', None)
 
+        if subject_id_param:
+            queryset = queryset.filter(subject_id=subject_id_param)
+        if section_id_param:
+            queryset = queryset.filter(section_id=section_id_param)
+        if class_id_param:
+            queryset = queryset.filter(section__class_obj__id=class_id_param)
+        if title_search_param:
+            queryset = queryset.filter(title__icontains=title_search_param)
+        return queryset
 
 class ContentAttachmentViewSet(viewsets.ModelViewSet):
     queryset = ContentAttachment.objects.all()

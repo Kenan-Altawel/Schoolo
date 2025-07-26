@@ -9,7 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .filters import *
 from rest_framework.permissions import AllowAny
           
-class CustomClassSectionPermission(permissions.BasePermission):
+class CustomPermission(permissions.BasePermission):
    
     def has_permission(self, request, view):
         if not request.user :
@@ -23,7 +23,7 @@ class CustomClassSectionPermission(permissions.BasePermission):
 class ClassViewSet(viewsets.ModelViewSet):
     queryset = Class.objects.all()
     serializer_class = ClassSerializer
-    permission_classes = [CustomClassSectionPermission]
+    permission_classes = [CustomPermission]
     filter_backends = [DjangoFilterBackend]
     filterset_class = ClassFilter
 
@@ -49,7 +49,7 @@ class ClassViewSet(viewsets.ModelViewSet):
 class SectionViewSet(viewsets.ModelViewSet):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
-    permission_classes = [CustomClassSectionPermission]
+    permission_classes = [CustomPermission]
     filter_backends = [DjangoFilterBackend]
     filterset_class = SectionFilter
     

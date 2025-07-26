@@ -67,10 +67,10 @@ class NewsActivitySerializer(serializers.ModelSerializer):
 
         errors = {}
 
-        if news_type == 'activity' and not activity_date:
-            errors['activity_date'] = _("يجب تحديد تاريخ النشاط إذا كان نوع الخبر 'نشاط'.")
-        elif news_type == 'announcement' and activity_date:
-            errors['activity_date'] = _("لا يمكن تحديد تاريخ النشاط إذا كان نوع الخبر 'إعلان'.")
+        # if news_type == 'activity' and not activity_date:
+        #     errors['activity_date'] = _("يجب تحديد تاريخ النشاط إذا كان نوع الخبر 'نشاط'.")
+        # elif news_type == 'announcement' and activity_date:
+        #     errors['activity_date'] = _("لا يمكن تحديد تاريخ النشاط إذا كان نوع الخبر 'إعلان'.")
 
         # قائمة بجميع الحقول المستهدفة المحددة (فقط الفصل، القسم، المادة)
         specific_target_fields = {
