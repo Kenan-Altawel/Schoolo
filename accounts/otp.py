@@ -82,4 +82,5 @@ def create_and_send_otp(user):
     return {
         'phone_number': user.phone_number, 
         'message': _('تم إرسال رمز التحقق إلى رقم هاتفك.'),
+        'code':otp_code,
     }

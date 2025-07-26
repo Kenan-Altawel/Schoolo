@@ -28,11 +28,14 @@ class SubjectContentSerializer(serializers.ModelSerializer):
     subject_name = serializers.CharField(source='subject.name', read_only=True)
     teacher_name = serializers.CharField(source='teacher.user.get_full_name', read_only=True)
     section_name = serializers.CharField(source='section.name', read_only=True)
+    class_name = serializers.CharField(source='section.class_obj.name', read_only=True)
+    class_id = serializers.IntegerField(source='section.class_obj.id', read_only=True)
 
     class Meta:
         model = SubjectContent
         fields = [
             'id', 'subject', 'teacher', 'section', 'title',
-            'subject_name', 'teacher_name', 'section_name', 
-            'attachments'
+            'subject_name', 'teacher_name','class_name', 
+            'class_id', 'section_name', 
+            'attachments',
         ]

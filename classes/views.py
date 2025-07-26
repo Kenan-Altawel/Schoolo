@@ -8,7 +8,7 @@ from accounts.permissions import *
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import *
 from rest_framework.permissions import AllowAny
-
+          
 class CustomClassSectionPermission(permissions.BasePermission):
    
     def has_permission(self, request, view):
