@@ -1,2 +1,18 @@
+# Python
 __pycache__/
 *.pyc
+*~
+.python-version
+.venv/
+
+# Django
+db.sqlite3
+media/
+static_cdn/
+
+# IDE
+.vscode/
+.idea/
+
+# Operating System Files
+.DS_Store
