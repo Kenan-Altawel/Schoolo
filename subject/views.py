@@ -12,6 +12,8 @@ from django.db.models import Q
 from accounts.permissions import *
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import *
+from students.models import Student
+from teachers.models import Teacher 
 
 class CustomPermission(permissions.BasePermission):
    
@@ -31,6 +33,69 @@ class SubjectViewSet(viewsets.ModelViewSet):
     permission_classes = [CustomPermission]
     filter_backends = [DjangoFilterBackend] 
     filterset_class = SubjectFilter 
+
+    def get_queryset(self):
+        user = self.request.user
+        
+        # إذا كان المستخدم غير موثق، لا يعرض له أي شيء
+        if not user.is_authenticated:
+            return Subject.objects.none()
+
+        # 1. للمدراء والمشرفين (Admin/Superuser)
+        # يمكن للمدراء رؤية كل المواد
+        if user.is_superuser or user.is_admin():
+            return self.queryset
+
+        # 2. للمعلمين
+        # يمكن للمعلم رؤية المواد التي يدرسها فقط
+        if user.is_teacher():
+            try:
+                # الوصول إلى كائن المعلم باستخدام related_name 'teacher_profile'
+                teacher_instance = user.teacher_profile
+                # الحصول على IDs جميع المواد المرتبطة بالمعلم من خلال TeacherSubject
+                taught_subject_ids = teacher_instance.teaching_subjects.values_list('subject_id', flat=True)
+                return self.queryset.filter(id__in=taught_subject_ids)
+            except Teacher.DoesNotExist:
+                return Subject.objects.none()
+
+        # 3. للطلاب
+        # يمكن للطالب رؤية المواد الخاصة بشعبته وصفه فقط
+        if user.is_student():
+            try:
+                # الوصول إلى كائن الطالب باستخدام related_name 'student'
+                student_instance = user.student
+
+                # إذا لم يكن للطالب شعبة مرتبطة، لا يوجد أي مواد ليعرضها
+                if not student_instance.section:
+                    return Subject.objects.none()
+
+                # الوصول إلى الشعبة والصف الخاص بالطالب
+                student_section = student_instance.section
+                student_class = student_section.class_obj
+
+                # فلترة المواد العامة التي تُدرّس في الصف بأكمله
+                general_subjects = self.queryset.filter(
+                    class_obj=student_class,
+                    section__isnull=True,
+                    stream_type__in=['General', None]
+                )
+
+                # فلترة المواد الخاصة بمسار الطالب إذا كان للشعبة مسار محدد
+                specialized_subjects = self.queryset.none()
+                if student_section.stream_type:
+                    specialized_subjects = self.queryset.filter(
+                        section=student_section,
+                        class_obj=student_class,
+                        stream_type=student_section.stream_type
+                    )
+                
+                # دمج قائمة المواد العامة والمتخصصة وإزالة أي تكرار
+                return (general_subjects | specialized_subjects).distinct()
+            except Student.DoesNotExist:
+                return Subject.objects.none()
+        
+        # 4. للمستخدمين الآخرين
+        return Subject.objects.none()
 
     def perform_create(self, serializer):
         with transaction.atomic():

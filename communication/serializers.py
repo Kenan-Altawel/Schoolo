@@ -40,7 +40,9 @@ class NewsActivitySerializer(serializers.ModelSerializer):
     target_class_name = serializers.CharField(source='target_class.name', read_only=True)
     target_section_name = serializers.CharField(source='target_section.name', read_only=True)
     target_subject_name = serializers.CharField(source='target_subject.name', read_only=True)
-
+    academic_year_name = serializers.CharField(source='academic_year.name', read_only=True)
+    academic_term_name = serializers.CharField(source='academic_term.name', read_only=True)
+    
 
     class Meta:
         model = NewsActivity
@@ -50,13 +52,13 @@ class NewsActivitySerializer(serializers.ModelSerializer):
             'target_class', 'target_class_name',
             'target_section', 'target_section_name',
             'target_subject', 'target_subject_name',
+            'academic_year_name',
+            'academic_term_name',
             'activity_date', 'created_at', 'updated_at'
         ]
-        # created_by و created_at و updated_at هي حقول للقراءة فقط ويتم تعيينها تلقائياً
         read_only_fields = ('created_at', 'updated_at', 'created_by')
 
     def validate(self, data):
-        # الحصول على القيم الحالية أو القيم الجديدة من البيانات
         news_type = data.get('type', self.instance.type if self.instance else 'announcement')
         target_audience = data.get('target_audience', self.instance.target_audience if self.instance else 'all')
         activity_date = data.get('activity_date', self.instance.activity_date if self.instance else None)

@@ -10,6 +10,8 @@ from accounts.permissions import *
 from django.db.models import Q
 from teachers.models import Teacher
 from django.utils.translation import gettext_lazy as _
+from academic.models import AcademicTerm,AcademicYear
+
 
 class IsAuthenticatedAndTeacherForWrites(permissions.BasePermission):
    
@@ -42,6 +44,16 @@ class SubjectContentViewSet(viewsets.ModelViewSet):
         is_student_role = user.is_student()
         is_admin_or_superuser = user.is_superuser or user.is_admin()
 
+        try:
+            current_academic_year = AcademicYear.objects.get(is_current=True)
+        except AcademicYear.DoesNotExist:
+            current_academic_year = None
+        
+        try:
+            current_academic_term = AcademicTerm.objects.get(is_current=True, academic_year=current_academic_year)
+        except AcademicTerm.DoesNotExist:
+            current_academic_term = None
+
         if is_admin_or_superuser:
             teacher_id_param = self.request.query_params.get('teacher_id', None)
             if teacher_id_param:
@@ -51,7 +63,7 @@ class SubjectContentViewSet(viewsets.ModelViewSet):
                 except Teacher.DoesNotExist:
                     return SubjectContent.objects.none() # أو يمكنك تجاهل الفلتر
             
-            return self._apply_common_filters(queryset).distinct()
+            return self._apply_common_filters(queryset, current_academic_year, current_academic_term).distinct()
 
 
         elif is_teacher_role:
@@ -61,12 +73,17 @@ class SubjectContentViewSet(viewsets.ModelViewSet):
             except Teacher.DoesNotExist:
                 return SubjectContent.objects.none()
             
-            return self._apply_common_filters(queryset).distinct()
+            return self._apply_common_filters(queryset, current_academic_year, current_academic_term).distinct()
 
 
         # 3. منطق الطالب: يرى فقط المحتوى المرتبط بمواده وشعبته وصفه
         elif is_student_role:
             student_filter_conditions = Q() # كائن Q لجمع شروط الطالب
+
+            if current_academic_year:
+                student_filter_conditions &= Q(academic_year=current_academic_year)
+            if current_academic_term:
+                student_filter_conditions &= Q(academic_term=current_academic_term)
 
             # المحتوى المرتبط بفصل الطالب
             if hasattr(user, 'current_class') and user.current_class:
@@ -82,18 +99,32 @@ class SubjectContentViewSet(viewsets.ModelViewSet):
                 student_filter_conditions |= Q(subject__id__in=subject_ids)
             
             
-            return self._apply_common_filters(queryset).distinct()
+            return self._apply_common_filters(queryset, current_academic_year, current_academic_term).distinct()
 
-       
         else:
             return SubjectContent.objects.none()
+        
     def perform_create(self, serializer):
         try:
             teacher_instance = Teacher.objects.get(user=self.request.user)
         except Teacher.DoesNotExist:
-            raise ValueError(_("المستخدم الحالي ليس لديه حساب معلم مرتبط.")) # يجب ألا يحدث هذا بسبب الصلاحية
-        serializer.save(teacher=teacher_instance)
+            raise ValueError(_("المستخدم الحالي ليس لديه حساب معلم مرتبط."))
 
+        try:
+            current_academic_year = AcademicYear.objects.get(is_current=True)
+        except AcademicYear.DoesNotExist:
+            raise ValueError(_("لا يوجد عام دراسي نشط حالياً لإنشاء المحتوى."))
+        
+        try:
+            current_academic_term = AcademicTerm.objects.get(is_current=True, academic_year=current_academic_year)
+        except AcademicTerm.DoesNotExist:
+            raise ValueError(_("لا يوجد فصل دراسي نشط حالياً ضمن العام الدراسي النشط لإنشاء المحتوى."))
+            
+        serializer.save(
+            teacher=teacher_instance,
+            academic_year=current_academic_year,
+            academic_term=current_academic_term
+        )
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -102,12 +133,24 @@ class SubjectContentViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
-    def _apply_common_filters(self, queryset):
+    def _apply_common_filters(self, queryset ,current_academic_year=None, current_academic_term=None):
         subject_id_param = self.request.query_params.get('subject_id', None)
         section_id_param = self.request.query_params.get('section_id', None)
         class_id_param = self.request.query_params.get('class_id', None)
         title_search_param = self.request.query_params.get('title_search', None)
+        academic_year_id_param = self.request.query_params.get('academic_year_id', None)
+        academic_term_id_param = self.request.query_params.get('academic_term_id', None)
+        
+        if academic_year_id_param:
+            queryset = queryset.filter(academic_year_id=academic_year_id_param)
+        elif current_academic_year and not self.request.query_params.get('academic_year_id'): # إذا لم يتم تحديد عام دراسي، استخدم العام الحالي
+            queryset = queryset.filter(academic_year=current_academic_year)
 
+        if academic_term_id_param:
+            queryset = queryset.filter(academic_term_id=academic_term_id_param)
+        elif current_academic_term and not self.request.query_params.get('academic_term_id'): # إذا لم يتم تحديد فصل دراسي، استخدم الفصل الحالي
+            queryset = queryset.filter(academic_term=current_academic_term)
+        
         if subject_id_param:
             queryset = queryset.filter(subject_id=subject_id_param)
         if section_id_param:

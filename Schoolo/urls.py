@@ -36,6 +36,8 @@ urlpatterns += i18n_patterns(
     path('api/teachers/', include('teachers.urls')),
     path('api/contents/', include('contents.urls')),
     path('api/communication/', include('communication.urls')),
+    path('api/', include('grading.urls')), 
+
 
     prefix_default_language=False
 )

@@ -25,7 +25,4 @@ class Admin(AutoCreateAndAutoUpdateTimeStampedModel):
     def __str__(self):
         return self.user.get_full_name() or self.user.phone_number
     
-    
-
-    def __str__(self):
-        return self.username
+   

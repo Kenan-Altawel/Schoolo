@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from teachers.models import Teacher
 from subject.models import Subject
 from classes.models import Section
-
+from academic.models import AcademicTerm,AcademicYear
 class SubjectContent(AutoCreateAndAutoUpdateTimeStampedModel):
     
 
@@ -33,7 +33,22 @@ class SubjectContent(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("عنوان المحتوى"),
         help_text=_("عنوان وصفي للمحتوى (مثال: محاضرة 1، روابط مفيدة، ملخص الفصل الأول).")
     )
-
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='subject_contents',
+        verbose_name=_("العام الدراسي")
+    )
+    academic_term = models.ForeignKey(
+        AcademicTerm,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='subject_contents',
+        verbose_name=_("الفصل الدراسي")
+    )
     class Meta:
         verbose_name = _("محتوى المادة")
         verbose_name_plural = _("محتويات المواد")

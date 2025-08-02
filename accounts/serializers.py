@@ -250,9 +250,6 @@ class SetPasswordSerializer(serializers.Serializer):
         except User.DoesNotExist:
             raise serializers.ValidationError(_("رقم الهاتف غير مسجل."))
 
-        if not (user.groups.filter(name='Manager').exists() or user.groups.filter(name='Teacher').exists()):
-            raise serializers.ValidationError(_("هذا الحساب ليس حساب مدير أو معلم، ولا يمكن تعيين كلمة المرور له بهذه الطريقة."))
-        
         if not user.is_phone_verified:
             raise serializers.ValidationError(_("رقم الهاتف غير مؤكد بعد. يرجى تأكيد رقم هاتفك أولاً."))
 
@@ -276,8 +273,11 @@ class SetPasswordSerializer(serializers.Serializer):
             'refresh_token': str(refresh), 
             'user_id': user.id,
             'phone_number': user.phone_number,
-            'user_role': 'admin' if user.groups.filter(name='Manager').exists() else ('teacher' if user.groups.filter(name='Teacher').exists() else 'user')
-        }
+            'user_role': 'admin' if user.groups.filter(name='Manager').exists() else (
+            'teacher' if user.groups.filter(name='Teacher').exists() else (
+            'student' if user.groups.filter(name='Student').exists() else 'user'
+        )
+    )}
 
 class SuperuserLoginSerializer(TokenObtainPairSerializer):
     username_field = 'phone_number'
@@ -550,3 +550,69 @@ class LogoutSerializer(serializers.Serializer):
         
         return {'message': _('تم تسجيل الخروج بنجاح.')}
 
+class StudentSerializer(serializers.ModelSerializer):
+    section_name = serializers.CharField(source='section.name', read_only=True)
+    class_name = serializers.CharField(source='student_class.name', read_only=True)
+
+    class Meta:
+        model = Student
+        fields = [
+            'enrollment_number', 'father_name', 'gender', 'address',
+            'parent_phone', 'student_status', 'register_status',
+            'date_of_birth', 'image', 'section_name', 'class_name'
+        ]
+
+# سيريالايزر لبيانات المعلم
+class TeacherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Teacher
+        fields = [
+            'address', 'specialization',
+        ]
+
+# سيريالايزر لبيانات المدير
+class AdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Admin
+        fields = [
+            'department',
+        ]
+
+# السيريالايزر الرئيسي للمستخدم، والذي يضم السيريالايزرات الأخرى
+class UserProfileSerializer(serializers.ModelSerializer):
+    # استخدام SerializerMethodField لربط بيانات الدور (role)
+    role_info = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'phone_number', 'first_name', 'last_name',
+            'is_active', 'is_staff', 'is_superuser',
+            'is_phone_verified', 'last_login', 'role_info',
+            'id', 'get_full_name' 
+        ]
+        read_only_fields = ['id', 'phone_number', 'get_full_name']
+
+    def get_role_info(self, obj):
+        if obj.is_student():
+            try:
+                student_profile = obj.student
+                return StudentSerializer(student_profile).data
+            except Student.DoesNotExist:
+                return None
+        
+        elif obj.is_teacher():
+            try:
+                teacher_profile = obj.teacher_profile
+                return TeacherSerializer(teacher_profile).data
+            except Teacher.DoesNotExist:
+                return None
+
+        elif obj.is_admin():
+            try:
+                admin_profile = obj.admin_profile
+                return AdminSerializer(admin_profile).data
+            except Admin.DoesNotExist:
+                return None
+        
+        return None

@@ -2,6 +2,9 @@ from rest_framework.authtoken.views import obtain_auth_token
 from django.urls import path, include
 from .views import *
 
+user_info = CurrentUserInfoViewSet.as_view({
+    'get': 'list'
+})
 urlpatterns = [
     path('student-login/', StudentloginView.as_view(), name='student_login'),
     path('superuser-login/', SuperuserLoginView.as_view(), name='superuser-login'),
@@ -15,5 +18,7 @@ urlpatterns = [
     path('verify-otp/', OTPVerifyView.as_view(), name='verify_otp'),
     path('set-password/', SetPasswordView.as_view(), name='set_password'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('get-info/', user_info, name='get-info'),
+
 
 ]

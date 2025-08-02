@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
-
-# تأكد من استيراد الموديلات التي تحتاجها
 from .models import SubjectContent, ContentAttachment
 
 class ContentAttachmentSerializer(serializers.ModelSerializer):
@@ -30,12 +28,14 @@ class SubjectContentSerializer(serializers.ModelSerializer):
     section_name = serializers.CharField(source='section.name', read_only=True)
     class_name = serializers.CharField(source='section.class_obj.name', read_only=True)
     class_id = serializers.IntegerField(source='section.class_obj.id', read_only=True)
-
+    academic_year_name = serializers.CharField(source='academic_year.name', read_only=True)
+    academic_term_name = serializers.CharField(source='academic_term.name', read_only=True)
+    
     class Meta:
         model = SubjectContent
         fields = [
             'id', 'subject', 'teacher', 'section', 'title',
             'subject_name', 'teacher_name','class_name', 
-            'class_id', 'section_name', 
+            'class_id', 'section_name',  'academic_year_name','academic_term_name',
             'attachments',
         ]

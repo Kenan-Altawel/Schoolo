@@ -5,7 +5,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from accounts.models import AutoCreateAndAutoUpdateTimeStampedModel, User # تأكد من استيراد CustomUser
 import datetime # لاستخدام datetime.date أو datetime.datetime
-
+from academic.models import AcademicTerm,AcademicYear
 from classes.models import Class, Section # استيراد Class و Section من تطبيق 'classes'
 from subject.models import Subject
 
@@ -86,7 +86,22 @@ class NewsActivity(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("تاريخ النشاط"),
         help_text=_("تاريخ حدوث النشاط (يُستخدم إذا كان النوع 'نشاط').")
     )
-
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='news_activities',
+        verbose_name=_("العام الدراسي")
+    )
+    academic_term = models.ForeignKey(
+        AcademicTerm,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='news_activities',
+        verbose_name=_("الفصل الدراسي")
+    )
     class Meta:
         verbose_name = _("إعلان/نشاط")
         verbose_name_plural = _("الإعلانات والأنشطة")
@@ -123,5 +138,9 @@ class NewsActivity(AutoCreateAndAutoUpdateTimeStampedModel):
         if self.target_audience in ['all', 'teachers', 'students']:
             if self.target_class or self.target_section or self.target_subject:
                 raise ValidationError(_("لا يمكن تحديد هدف محدد (فصل/قسم/مادة) عندما يكون الجمهور 'الجميع' أو 'معلمون' أو 'طلاب'."))
+            
+        if self.academic_year and self.academic_term:
+            if self.academic_term.academic_year != self.academic_year:
+                raise ValidationError(_("الفصل الدراسي المحدد لا ينتمي إلى العام الدراسي المحدد."))
 
         super().clean()

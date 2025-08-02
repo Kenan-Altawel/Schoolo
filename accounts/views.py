@@ -11,6 +11,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from .permissions import *
+from rest_framework import viewsets
 
 logger = logging.getLogger(__name__)
 
@@ -249,4 +250,13 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT) # 204 No Content يدل على نجاح العملية بدون إرجاع محتوى
 
 
+class CurrentUserInfoViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
 
+    def list(self, request):
+        """
+        عرض معلومات المستخدم الموثق الحالي.
+        """
+        user = request.user
+        serializer = UserProfileSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)

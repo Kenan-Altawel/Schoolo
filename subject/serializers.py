@@ -99,7 +99,7 @@ class SubjectSerializer(serializers.ModelSerializer):
         # و في نفس الوقت تم تحديد شعبة محددة للمادة (section_obj له قيمة)
         if is_subject_general and is_linked_to_section:  # **تم تعديل الشرط هنا**
             raise serializers.ValidationError({
-                "non_field_errors": _(
+                "details": _(
                     "لا يمكن ربط مادة عامة (بدون مسار محدد أو بمسار 'عام') بشعبة واحدة محددة. المادة العامة تُربط بجميع شعب الصف تلقائياً.")
             })
 
