@@ -1,9 +1,18 @@
-# Created by venv; see https://docs.python.org/3/library/venv.html
-
-# created by virtualenv automatically
-venv/
-_pycache_/
+# Python
+__pycache__/
 *.pyc
-*.sqlite3
-.venv
-*.log
+*~
+.python-version
+.venv/
+
+# Django
+db.sqlite3
+media/
+static_cdn/
+
+# IDE
+.vscode/
+.idea/
+
+# Operating System Files
+.DS_Store
