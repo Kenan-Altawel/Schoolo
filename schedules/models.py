@@ -7,7 +7,7 @@ from accounts.models import AutoCreateAndAutoUpdateTimeStampedModel
 from teachers.models import Teacher # للتأكد من استيراد Teacher
 from subject.models import Subject
 from classes.models import Section
-from academic.models import AcademicTerm,AcademicYear
+from academic.models import AcademicTerm,AcademicYear, DayOfWeek, TimeSlot
 
 class ProposedClassSchedule(AutoCreateAndAutoUpdateTimeStampedModel):
     DAY_OF_WEEK_CHOICES = [
@@ -93,16 +93,7 @@ class ProposedClassSchedule(AutoCreateAndAutoUpdateTimeStampedModel):
         )
     
 class ClassSchedule(AutoCreateAndAutoUpdateTimeStampedModel):
-    DAY_OF_WEEK_CHOICES = [
-        ('Monday', _('الاثنين')),
-        ('Tuesday', _('الثلاثاء')),
-        ('Wednesday', _('الأربعاء')),
-        ('Thursday', _('الخميس')),
-        ('Friday', _('الجمعة')),
-        ('Saturday', _('السبت')),
-        ('Sunday', _('الأحد')),
-    ]
-
+    
     subject = models.ForeignKey(
         Subject, 
         on_delete=models.CASCADE,
@@ -135,33 +126,31 @@ class ClassSchedule(AutoCreateAndAutoUpdateTimeStampedModel):
         related_name='class_schedules',
         verbose_name=_("الفصل الدراسي")
     )
-    day_of_week = models.CharField(
-        max_length=10,
-        choices=DAY_OF_WEEK_CHOICES,
-        verbose_name=_("يوم الأسبوع"),
-        help_text=_("اليوم الذي ستقام فيه الحصة.")
+    day_of_week = models.ForeignKey(
+        DayOfWeek,
+        on_delete=models.CASCADE,
+        related_name='class_schedules',
+        verbose_name=_("يوم الأسبوع")
     )
-    period = models.CharField(
-        max_length=50, # يمكن أن يكون '08:00-09:00' أو 'الفترة الأولى'
-        verbose_name=_("الفترة/الحصة"),
-        help_text=_("توقيت الحصة أو رقم الفترة (مثال: '08:00-09:00' أو 'الفترة الأولى').")
+    time_slot = models.ForeignKey(
+        TimeSlot,
+        on_delete=models.CASCADE,
+        related_name='class_schedules',
+        verbose_name=_("الفترة الزمنية")
     )
-
     class Meta:
         verbose_name = _("جدول حصص معتمد")
         verbose_name_plural = _("جداول الحصص المعتمدة")
-        ordering = ['academic_year', 'academic_term', 'section', 'day_of_week', 'period']
+        ordering = ['academic_year', 'academic_term', 'section', 'day_of_week', 'time_slot']
 
-        # قيد فريد لضمان عدم تكرار نفس الحصة في نفس القسم، اليوم، والفترة، ضمن العام والفصل الدراسي
         unique_together = [
-            ['subject', 'section', 'academic_year', 'academic_term', 'day_of_week', 'period']
+            ['subject', 'section', 'academic_year', 'academic_term', 'day_of_week', 'time_slot']
         ]
-        # ملاحظة: فهرس teacher_id ليس فريداً هنا، بل هو فهرس عادي للبحث السريع.
 
     def __str__(self):
         return (
-            f"{self.subject.name} - {self.section.name} - {self.get_day_of_week_display()} "
-            f"({self.period}) - {self.academic_term.name}, {self.academic_year.name}"
+            f"{self.subject.name} - {self.section.name} - {self.day_of_week} "
+            f"({self.time_slot}) - {self.academic_term.name}, {self.academic_year.name}"
         )
 
     def clean(self):
@@ -171,8 +160,8 @@ class ClassSchedule(AutoCreateAndAutoUpdateTimeStampedModel):
             academic_year=self.academic_year,
             academic_term=self.academic_term,
             day_of_week=self.day_of_week,
-            period=self.period
-        ).exclude(pk=self.pk) # استبعاد الكائن الحالي في حالة التحديث
+            time_slot=self.time_slot
+        ).exclude(pk=self.pk) 
 
         if existing_schedules.exists():
             raise ValidationError(
@@ -186,7 +175,7 @@ class ClassSchedule(AutoCreateAndAutoUpdateTimeStampedModel):
             academic_year=self.academic_year,
             academic_term=self.academic_term,
             day_of_week=self.day_of_week,
-            period=self.period
+            time_slot=self.time_slot
         ).exclude(pk=self.pk) # استبعاد الكائن الحالي في حالة التحديث
 
         if existing_schedules_for_section.exists():

@@ -7,4 +7,6 @@ router = DefaultRouter()
 router.register('subjects', views.SubjectViewSet)
 urlpatterns = [
     path('', include(router.urls)),
+    path('subjects/<int:subject_id>/teachers/', views.SubjectTeachersListView.as_view(), name='subject-teachers-list'),
+
 ]

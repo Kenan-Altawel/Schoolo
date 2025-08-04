@@ -3,10 +3,22 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated 
-from .serializers import TeacherProfileUpdateSerializer
-from .models import Teacher 
+from .serializers import *
+from .models import Teacher ,TeacherAvailability
 from django.shortcuts import get_object_or_404 
 import logging
+from rest_framework import permissions
+from accounts.permissions import *
+from subject.models import TeacherSubject
+from .filters import TeacherFilter
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
+class CustomPermission(permissions.BasePermission):
+   
+    def has_permission(self, request, view):
+        return IsAdminOrSuperuser().has_permission(request, view)
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,3 +47,32 @@ class TeacherProfileUpdateView(generics.RetrieveUpdateAPIView):
     def perform_update(self, serializer):
         serializer.save()
         logger.info(f"Teacher profile for user {self.request.user.phone_number} updated.")
+
+class TeacherAvailabilityListAPIView(generics.ListAPIView):
+    serializer_class = TeacherAvailabilitySerializer
+    permission_classes = [permissions.AllowAny] 
+
+    def get_queryset(self):
+        teacher_id = self.kwargs.get('teacher_id')
+        if teacher_id:
+            return TeacherAvailability.objects.filter(teacher_id=teacher_id)
+        return TeacherAvailability.objects.none()
+    
+    
+class TeacherListView(generics.ListAPIView):
+    permission_classes = [CustomPermission] 
+    queryset = Teacher.objects.all()
+    filterset_class = TeacherFilter
+    filter_backends = [DjangoFilterBackend] 
+    serializer_class = TeacherListSerializer
+    filter_backends = [OrderingFilter]
+    ordering_fields = ['specialization', 'user__first_name', 'user__last_name']
+    ordering = ['user__first_name']
+
+
+class TeacherSubjectsListView(generics.ListAPIView):
+    serializer_class = TeacherSubjectSerializer
+    permission_classes = [CustomPermission] 
+    def get_queryset(self):
+        teacher_id = self.kwargs['teacher_id']
+        return TeacherSubject.objects.filter(teacher_id=teacher_id)

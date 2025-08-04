@@ -37,6 +37,5 @@ class TimeSlotSerializer(serializers.ModelSerializer):
 class DayOfWeekSerializer(serializers.ModelSerializer):
     class Meta:
         model = DayOfWeek
-        fields = '__all__' # يشمل جميع الحقول
-        # fields = ['id', 'name_ar', 'name_en', 'is_school_day', 'created_at']
+        fields = '__all__' 
         read_only_fields = ('created_at',)

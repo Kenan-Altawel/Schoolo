@@ -12,17 +12,6 @@ from django.contrib.auth.models import Group
 from academic.models import AcademicYear, AcademicTerm
 
 
-class CustomPermission(permissions.BasePermission):
-   
-    def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        
-        else:
-            return IsAdminOrSuperuser().has_permission(request, view)
 
 class NewsActivityViewSet(viewsets.ModelViewSet):
     serializer_class = NewsActivitySerializer

@@ -43,6 +43,10 @@ class AcademicTermViewSet(viewsets.ModelViewSet):
         academic_year_name = self.request.query_params.get('year_name', None)
         if academic_year_name:
             queryset = queryset.filter(academic_year__name__iexact=academic_year_name) # iexact لتجاهل حالة الأحرف
+        
+        is_current_param = self.request.query_params.get('is_current', None)
+        if is_current_param and is_current_param.lower() == 'true':
+            queryset = queryset.filter(is_current=True)
             
         return queryset
 

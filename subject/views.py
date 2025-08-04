@@ -1,11 +1,11 @@
 # subject/views.py
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status , generics
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import permissions
 from django.utils.translation import gettext_lazy as _
 from .models import Subject, SectionSubjectRequirement
-from .serializers import SubjectSerializer, SectionSubjectRequirementSerializer
+from .serializers import *
 from classes.models import Class, Section
 from django.db import transaction
 from django.db.models import Q
@@ -14,6 +14,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .filters import *
 from students.models import Student
 from teachers.models import Teacher 
+from .models import TeacherSubject
 
 class CustomPermission(permissions.BasePermission):
    
@@ -169,3 +170,12 @@ class SubjectViewSet(viewsets.ModelViewSet):
         else:
             print(
                 f"Error: Subject '{subject_instance.name}' is not linked to a class or specific section. No SectionSubjectRequirement created.")
+
+
+class SubjectTeachersListView(generics.ListAPIView):
+    serializer_class = TeacherSubjectSerializer
+    permission_classes = [CustomPermission]
+
+    def get_queryset(self):
+        subject_id = self.kwargs['subject_id']
+        return TeacherSubject.objects.filter(subject_id=subject_id)

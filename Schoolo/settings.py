@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts.apps.AccountsConfig',
-    'academic',
+    'academic.apps.AcademicConfig',
     'classes',
     'subject',
     'teachers',

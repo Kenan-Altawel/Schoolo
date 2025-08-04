@@ -4,28 +4,24 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
-
-# استيراد الموديلات من التطبيقات الصحيحة
 from academic.models import AcademicYear, AcademicTerm, DayOfWeek, TimeSlot
 from classes.models import Class, Section
+from students.models import Student
 from subject.models import Subject, SectionSubjectRequirement, TeacherSubject
-from teachers.models import Teacher, TeacherAvailability
-from schedules.models import ClassSchedule, \
-    ProposedClassSchedule  # تأكد من استيراد هذه الموديلات من تطبيق schedules الخاص بك
+from teachers.models import Teacher
+from schedules.models import ClassSchedule
 from accounts.models import User
+from rest_framework import permissions
+from django.core.exceptions import ValidationError
+from accounts.permissions import *
+
 
 # استيراد الـ Serializers
 from .serializers import (
     SubjectWithLessonCountSerializer,
-    TeacherSerializer,
     ClassScheduleSerializer,
-    DayOfWeekSerializer,  # إذا أردت عرض أيام الأسبوع بشكل منفصل
-    TimeSlotSerializer,  # إذا أردت عرض الفترات الزمنية بشكل منفصل
 )
 
-
-# ملاحظة: لم يتم تضمين Authentication و Permissions هنا، يجب إضافتها.
-# مثال: from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 class SectionSubjectsListView(generics.ListAPIView):
     """
@@ -33,9 +29,6 @@ class SectionSubjectsListView(generics.ListAPIView):
     Path: /api/classes/{class_id}/sections/{section_id}/subjects/
     """
     serializer_class = SubjectWithLessonCountSerializer
-
-    # permission_classes = [IsAuthenticated, IsAdminUser] # مثال على إضافة الصلاحيات
-
     def get_queryset(self):
         class_id = self.kwargs['class_id']
         section_id = self.kwargs['section_id']
@@ -50,7 +43,7 @@ class SectionSubjectsListView(generics.ListAPIView):
         queryset = Subject.objects.filter(
             models.Q(class_obj=section.class_obj) |
             models.Q(section=section)
-        ).distinct()  # للتأكد من عدم تكرار المواد
+        ).distinct() 
 
         return queryset
 
@@ -61,22 +54,6 @@ class SectionSubjectsListView(generics.ListAPIView):
         return context
 
 
-class SubjectTeachersListView(generics.ListAPIView):
-    """
-    يعرض قائمة بالمعلمين الذين يدرّسون مادة معينة.
-    Path: /api/subjects/{subject_id}/teachers/
-    """
-    serializer_class = TeacherSerializer
-
-    # permission_classes = [IsAuthenticated, IsAdminUser]
-
-    def get_queryset(self):
-        subject_id = self.kwargs['subject_id']
-        subject = get_object_or_404(Subject, id=subject_id)
-
-        # جلب المعلمين الذين يدرسون هذه المادة عبر TeacherSubject
-        teachers_ids = TeacherSubject.objects.filter(subject=subject).values_list('teacher_id', flat=True)
-        return Teacher.objects.filter(id__in=teachers_ids)
 
 
 class ClassScheduleCreateView(generics.CreateAPIView):
@@ -85,32 +62,48 @@ class ClassScheduleCreateView(generics.CreateAPIView):
     Path: /api/schedules/add/
     """
     serializer_class = ClassScheduleSerializer
-
-    # permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [CustomPermission]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        # منطق اقتراح الأيام المفضلة للمعلم (للعرض فقط، القرار للمدير)
-        teacher_id = serializer.validated_data.get('teacher').id
-        teacher = get_object_or_404(Teacher, id=teacher_id)
-
-        # جلب الأيام المفضلة من TeacherAvailability
-        preferred_days_objects = teacher.availability.all().order_by('day_of_week')
-        teacher_preferred_days = [item.get_day_of_week_display() for item in preferred_days_objects]
 
         try:
-            self.perform_create(serializer)
-        except Exception as e:  # يمكن أن تكون ValidationError من clean method في الموديل
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            current_academic_year = AcademicYear.objects.get(is_current=True)
+        except AcademicYear.DoesNotExist:
+            return Response({"detail": "لا يوجد سنة دراسية نشطة حالياً."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            current_academic_term = AcademicTerm.objects.get(
+                is_current=True, 
+                academic_year=current_academic_year
+            )
+        except AcademicTerm.DoesNotExist:
+            return Response({"detail": "لا يوجد فصل دراسي نشط حالياً."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        data = request.data.copy()
+        data['academic_year'] = current_academic_year.id
+        data['academic_term'] = current_academic_term.id
 
+        serializer = self.get_serializer(data=data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+        except ValidationError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
         response_data = serializer.data
-        response_data['teacher_preferred_days'] = teacher_preferred_days  # لإظهار الأيام المفضلة للمدير
+
+        teacher_id = serializer.validated_data.get('teacher').user_id
+        teacher = get_object_or_404(Teacher, user_id=teacher_id)
+        preferred_days_objects = teacher.availability.all().order_by('day_of_week')
+        teacher_preferred_days = [item.get_day_of_week_display() for item in preferred_days_objects]
+        response_data['teacher_preferred_days'] = teacher_preferred_days
 
         headers = self.get_success_headers(serializer.data)
+        
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
+
+       
 
 class ClassScheduleDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -118,53 +111,96 @@ class ClassScheduleDetailView(generics.RetrieveUpdateDestroyAPIView):
     Path: /api/schedules/{id}/
     """
     queryset = ClassSchedule.objects.all()
+    permission_classes = [CustomPermission]
     serializer_class = ClassScheduleSerializer
-    lookup_field = 'id'  # للتأكد من استخدام 'id' في الـ URL
-
-    # permission_classes = [IsAuthenticated, IsAdminUser]
-
+    lookup_field = 'id' 
+    
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
+
         try:
-            self.perform_update(serializer)
-        except Exception as e:
+            current_academic_year = AcademicYear.objects.get(is_current=True)
+        except AcademicYear.DoesNotExist:
+            return Response({"detail": "لا يوجد سنة دراسية نشطة حالياً."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            current_academic_term = AcademicTerm.objects.get(
+                is_current=True, 
+                academic_year=current_academic_year
+            )
+        except AcademicTerm.DoesNotExist:
+            return Response({"detail": "لا يوجد فصل دراسي نشط حالياً."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        data = request.data.copy()
+        data['academic_year'] = current_academic_year.id
+        data['academic_term'] = current_academic_term.id
+
+        serializer = self.get_serializer(data=data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+        except ValidationError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        response_data = serializer.data
 
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance,
-            # otherwise the original saved object will be returned.
-            instance._prefetched_objects_cache = {}
+        teacher_id = serializer.validated_data.get('teacher').user_id
+        teacher = get_object_or_404(Teacher, user_id=teacher_id)
+        preferred_days_objects = teacher.availability.all().order_by('day_of_week')
+        teacher_preferred_days = [item.get_day_of_week_display() for item in preferred_days_objects]
+        response_data['teacher_preferred_days'] = teacher_preferred_days
 
-        return Response(serializer.data)
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        headers = self.get_success_headers(serializer.data)
+        
+        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
 
-class SectionClassSchedulesView(generics.ListAPIView):
+class ClassScheduleListView(generics.ListAPIView):
     """
-    يعرض جميع الحصص المجدولة لصف وشعبة معينين.
-    Path: /api/classes/{class_id}/sections/{section_id}/schedules/
+    لعرض قائمة بجميع الحصص مع إمكانية التصفية بناءً على المستخدم ودوره.
+    يمكن للمدراء عرض كل الحصص، بينما يرى المعلمون حصصهم فقط، والطلاب يرون حصص شعبهم.
     """
     serializer_class = ClassScheduleSerializer
-
-    # permission_classes = [IsAuthenticated] # يمكن أن يكون متاحاً للمعلمين والطلاب أيضاً
+    permission_classes = [permissions.IsAuthenticated] # التأكد من أن المستخدم موثق
 
     def get_queryset(self):
-        class_id = self.kwargs['class_id']
-        section_id = self.kwargs['section_id']
+        # قاعدة البيانات الأساسية لجميع الحصص
+        queryset = ClassSchedule.objects.all()
+        user = self.request.user
 
-        # التأكد أن الصف والشعبة موجودان
-        get_object_or_404(Class, id=class_id)
-        get_object_or_404(Section, id=section_id)
+        # إذا لم يكن المستخدم موثقاً، لا تُرجع شيئاً.
+        # على الرغم من وجود permission_classes، هذه خطوة أمان إضافية.
+        if not user.is_authenticated:
+            return ClassSchedule.objects.none()
 
-        # جلب الجداول الخاصة بهذه الشعبة
-        return ClassSchedule.objects.filter(
-            section_id=section_id
-        ).order_by('academic_year__name', 'academic_term__name', 'day_of_week', 'period')
+        # منطق المسؤول والمشرف:
+        # إذا كان المستخدم مشرفاً عاماً، يمكنه رؤية جميع الحصص.
+        if user.is_superuser or user.is_admin(): # افترضنا وجود دالة is_admin()
+            return queryset
+
+        # منطق المعلم:
+        # إذا كان المستخدم معلماً، يُرجع له الحصص التي يدرسها فقط.
+        is_teacher_role = user.is_teacher() # افترضنا وجود دالة is_teacher()
+        if is_teacher_role:
+            # يجب أن يكون لدى المستخدم كائن teacher مرتبط به
+            try:
+                teacher_obj = Teacher.objects.filter(user=user).first()
+                return queryset.filter(teacher=teacher_obj)
+            except Teacher.DoesNotExist:
+                return ClassSchedule.objects.none()
+
+        # منطق الطالب:
+        # إذا كان المستخدم طالباً، يُرجع له الحصص الخاصة بشعبته الحالية.
+        is_student_role = user.is_student() # افترضنا وجود دالة is_student()
+        if is_student_role:
+            # يجب أن يكون لدى المستخدم كائن student مرتبط به
+            try:
+                student_obj = Student.objects.filter(user=user).first()
+                if student_obj.section:
+                    return queryset.filter(section=student_obj.section)
+            except Student.DoesNotExist:
+                return ClassSchedule.objects.none()
+
+        # لأي دور آخر أو مستخدم لم يتم تحديده، لا تُرجع شيئاً.
+        return ClassSchedule.objects.none()
+
+

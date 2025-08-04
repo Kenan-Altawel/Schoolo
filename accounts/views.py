@@ -12,6 +12,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from .permissions import *
 from rest_framework import viewsets
+from enrollment.models import RegistrationSetting
+
 
 logger = logging.getLogger(__name__)
 

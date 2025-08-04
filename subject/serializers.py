@@ -4,6 +4,8 @@ from .models import Subject, SectionSubjectRequirement
 from classes.models import Class, Section
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from teachers.models import Teacher
+from accounts.models import User
 
 
 class SectionSubjectRequirementSerializer(serializers.ModelSerializer):
@@ -148,3 +150,29 @@ class TeacherSubjectAssignmentSerializer(serializers.Serializer):
         if not Subject.objects.filter(id=value.id).exists():
             raise serializers.ValidationError(_("المادة المحددة غير موجودة."))
         return value
+
+
+class SubjectSerializer2(serializers.ModelSerializer):
+    class Meta:
+        model = Subject
+        fields = ['id', 'name']
+
+class TeacherSerializer(serializers.ModelSerializer):
+    # first_name = serializers.CharField(source='user.first_name')
+    # last_name = serializers.CharField(source='user.last_name')
+    full_name = serializers.SerializerMethodField() 
+    user_id = serializers.IntegerField(source='user.id')
+    class Meta:
+        model = Teacher
+        fields = ['user_id','full_name']
+    def get_full_name(self, obj):
+        return obj.user.get_full_name()
+
+
+class TeacherSubjectSerializer(serializers.ModelSerializer):
+    teacher = TeacherSerializer()  # استخدام Serializer المدرس
+    subject = SubjectSerializer2()  # استخدام Serializer المادة
+
+    class Meta:
+        model = TeacherSubject
+        fields = ['teacher', 'subject', 'weekly_hours']

@@ -1,7 +1,6 @@
 import datetime
 from django.utils import timezone
 from rest_framework import serializers
-from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from students.models import Student
 from teachers.models import Teacher
@@ -10,22 +9,18 @@ from .models import User , OTP
 from classes.models import Class
 from django.utils.translation import gettext_lazy as _
 from django.db import transaction
-from django.contrib.auth.models import Group
 import logging 
-from datetime import timedelta
 from rest_framework.exceptions import AuthenticationFailed
 from django.db.utils import IntegrityError 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-from .otp import create_and_send_otp , send_otp_sms , generate_otp
+from .otp import create_and_send_otp 
 from django.utils import timezone
-from datetime import timedelta
 from rest_framework_simplejwt.tokens import RefreshToken 
-from enrollment.models import RegistrationSetting
 from .tokens import get_tokens_for_user
 User = get_user_model()
 from subject.serializers import *
-from subject.models import Subject, TeacherSubject
+from subject.models import  TeacherSubject
 
 
 logger = logging.getLogger(__name__)
@@ -561,13 +556,13 @@ class StudentSerializer(serializers.ModelSerializer):
             'parent_phone', 'student_status', 'register_status',
             'date_of_birth', 'image', 'section_name', 'class_name'
         ]
-
-# سيريالايزر لبيانات المعلم
+from teachers.serializers import TeacherAvailabilitySerializer
 class TeacherSerializer(serializers.ModelSerializer):
+    availability = TeacherAvailabilitySerializer(many=True, read_only=True)
     class Meta:
         model = Teacher
         fields = [
-            'address', 'specialization',
+            'address', 'specialization','availability',
         ]
 
 # سيريالايزر لبيانات المدير
@@ -580,7 +575,6 @@ class AdminSerializer(serializers.ModelSerializer):
 
 # السيريالايزر الرئيسي للمستخدم، والذي يضم السيريالايزرات الأخرى
 class UserProfileSerializer(serializers.ModelSerializer):
-    # استخدام SerializerMethodField لربط بيانات الدور (role)
     role_info = serializers.SerializerMethodField()
 
     class Meta:
