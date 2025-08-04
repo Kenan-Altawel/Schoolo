@@ -11,15 +11,26 @@
 
 ## 💻 **Tech Stack**  
 - **Frontend**: React.js, Flutter  
-- **Backend**: Django (Python)  
+- **Backend**: Django (Python)   
 - **Database**: MySQL  
 - **Tools**: Docker, GitHub Actions (CI/CD)  
 
 ---
 
-## ⚡ **Quick Start**  
-```bash  
-git clone https://github.com/your-username/school-management-system.git  
-pip install -r requirements.txt  
-python manage.py migrate  
-python manage.py runserver     
+## ⚡ Quick Start
+Follow these steps to get the Django backend running locally:
+- do make sure to have a MySQL server running and db created.
+
+```bash
+### 1. Clone the repository
+git clone https://github.com/your-username/school-management-system.git
+
+### 2. (Optional but recommended) Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+### 3. Install Python dependencies
+pip install -r requirements.txt
+
+### 4. Start server
+python3 manage.py runserver
