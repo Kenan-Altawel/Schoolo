@@ -17,11 +17,18 @@ class PendingStudentList(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = Student.objects.filter(user__is_active=False)
-        student_status = self.request.query_params.get('status', None)
+        student_status = self.request.query_params.get('student_status', None)
         if student_status:
-            valid_statuses = [choice[0] for choice in Student.STUDENT_STATUSSTUDENTS_CHOICES]
+            valid_statuses = [choice[0] for choice in Student.STUDENT_STATUS_CHOICES]
             if student_status in valid_statuses:
-                queryset = queryset.filter(status=student_status)
+                queryset = queryset.filter(student_status=student_status)
+
+        queryset = Student.objects.filter(user__is_active=False)
+        register_status = self.request.query_params.get('register_status', None)
+        if register_status:
+            valid_statuses = [choice[0] for choice in Student.STUDENT_register_CHOICES]
+            if register_status in valid_statuses:
+                queryset = queryset.filter(register_status=register_status)
            
         class_id = self.request.query_params.get('student_class', None)
         if class_id:

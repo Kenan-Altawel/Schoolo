@@ -452,8 +452,10 @@ class OTPSendSerializer(serializers.Serializer):
                 print('Teacher')
             elif user.groups.filter(name='Student').exists():
                 self.user_role = 'student'            
-            else:
-                raise serializers.ValidationError(_("لا تسطيع التسجيل في المدرسة بهذه الطريقة."))
+            elif user.is_superuser:
+                self.user_role = 'manager'
+            else :
+                raise serializers.ValidationError(_("انت غير مسجل في المدرسة "))
 
         return data
 
@@ -464,7 +466,6 @@ class OTPSendSerializer(serializers.Serializer):
         return response_data
 
 class OTPVerifySerializer(serializers.Serializer):
-
 
     phone_number = serializers.CharField(max_length=15, required=True, label=_("رقم الهاتف"))
     otp_code = serializers.CharField(max_length=6, required=True, label=_("رمز التحقق"))

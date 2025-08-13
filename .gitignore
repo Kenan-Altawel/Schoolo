@@ -16,3 +16,7 @@ venv/
 
 # Log files
 *.log
+
+contents/subject_content_attachments
+
+subject/subject_pdfs
