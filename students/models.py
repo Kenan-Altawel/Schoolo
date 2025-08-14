@@ -41,7 +41,7 @@ class Student(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("المرحلة الدراسية")
     )    
     date_of_birth = models.DateField(blank=True, null=True, verbose_name=_('تاريخ الميلاد'))
-    image = models.ImageField(upload_to='student_images/', blank=True, null=True, verbose_name=_('صورة الطالب'))
+    image = models.ImageField(upload_to='students/student_images/', blank=True, null=True, verbose_name=_('صورة الطالب'))
 
     class Meta:
         verbose_name = _("الطالب")

@@ -1,5 +1,5 @@
 # exams/views.py
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status , generics
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
@@ -11,86 +11,43 @@ from .models import Exam
 from accounts.models import User 
 from teachers.models import Teacher
 from students.models import Student 
-from classes.models import Section # لإمكانية الوصول إلى stream_type من Section في منطق الطالب
+from classes.models import Section 
+from accounts.permissions import CustomPermission
+from rest_framework.decorators import action
 
-# تعريف صلاحية الكتابة (مدير أو معلم)
-class IsAuthenticatedAndAdminForWrites(permissions.BasePermission):
-    message = _('يجب أن تكون مسجلاً للدخول (authenticated) للوصول إلى هذا المحتوى. يجب أن تكون مديراً أو معلماً لإنشاء أو تعديل الاختبارات.')
-
-    def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        
-        else:
-            return IsAdminOrSuperuser().has_permission(request, view)
 
 class ExamViewSet(viewsets.ModelViewSet):
     serializer_class = ExamSerializer
-    permission_classes = [IsAuthenticatedAndAdminForWrites]
-    queryset = Exam.objects.all() # queryset الأساسي، سيتم فلترته في get_queryset
+    permission_classes = [CustomPermission]
+    queryset = Exam.objects.all() 
 
     def get_queryset(self):
-        queryset = super().get_queryset() # ابدأ بالـ queryset الأساسي
         user = self.request.user
-
-        if not user.is_authenticated:
-            return Exam.objects.none()
-
-        # 1. منطق المدير/المشرف: يرى جميع الاختبارات ويمكنه تصفيتها
-        if user.is_superuser or user.is_admin():
-            # لا حاجة لفلترة أساسية هنا، فقط تطبيق معلمات الاستعلام
-            pass # ستبقى queryset = Exam.objects.all() قبل الفلاتر
-
-        # 2. منطق المعلم: يرى الاختبارات للمواد التي يدرسها
+        
+        # الفلترة الأساسية بناءً على دور المستخدم
+        if user.is_admin():
+            queryset = Exam.objects.all()
         elif user.is_teacher():
             try:
-                teacher_instance = Teacher.objects.get(user=user)
-                if hasattr(teacher_instance, 'teaching_subjects'): # تحقق إذا كان الحقل موجودًا
-                    taught_subjects_ids = teacher_instance.teaching_subjects.values_list('id', flat=True)
-                    queryset = queryset.filter(subject__id__in=taught_subjects_ids)
-                else:
-                    pass # سيكمل ليطبق فلاتر query_params على كل الاختبارات المرتبطة بمادة
+                teacher = user.teacher_profile 
+                queryset = Exam.objects.filter(teacher=teacher)
             except Teacher.DoesNotExist:
-                return Exam.objects.none() # لا يوجد بروفايل معلم، فلا يرى شيئًا
-
-        # 3. منطق الطالب: يرى فقط الاختبارات المرتبطة بصفه، شعبته، ومواده
+                queryset = Exam.objects.none()
         elif user.is_student():
-            student_filter_conditions = Q()
-            student_instance = None
             try:
-                student_instance = Student.objects.get(user=user)
-            except Student.DoesNotExist:
-                return Exam.objects.none() # لا يوجد بروفايل طالب، فلا يرى شيئًا
-            
-            if student_instance.current_class:
-                student_filter_conditions |= Q(target_class=student_instance.current_class, target_section__isnull=True, stream_type__isnull=True)
-                student_filter_conditions |= Q(target_class=student_instance.current_class, target_section__isnull=True, stream_type=student_instance.current_class.stream_type)
-            
-            if student_instance.current_section:
-                student_filter_conditions |= Q(target_section=student_instance.current_section)
-                student_filter_conditions |= Q(
-                    target_class=student_instance.current_section.class_obj, 
-                    target_section__isnull=True,
-                    stream_type__in=[None, student_instance.current_section.stream_type]
-                )
-
-            if student_instance.enrolled_subjects.exists():
-                subject_ids = student_instance.enrolled_subjects.values_list('id', flat=True)
-                # استخدم Q للحفاظ على التجميع
-                student_filter_conditions &= Q(subject__id__in=subject_ids)
-            else:
+                student = user.student_profile
+                student_section = student.section
                 
-                return Exam.objects.none()
-
-            queryset = queryset.filter(student_filter_conditions).distinct() # تطبيق شروط الطالب
+                queryset = Exam.objects.filter(
+                    Q(target_section=student_section) |
+                    Q(target_class=student_section.class_obj, target_section__isnull=True)
+                )
+            except Student.DoesNotExist:
+                queryset = Exam.objects.none()
         else:
-            # أي مستخدم آخر غير مسجل الدخول، أو غير معلم/مدير/طالب
-            return Exam.objects.none()
+            queryset = Exam.objects.none()
 
-        # تطبيق فلاتر معلمات الاستعلام (Query Parameters) بعد الفلاتر الأساسية لكل دور
+        # --- تطبيق فلاتر معلمات الاستعلام (Query Parameters) ---
         subject_id = self.request.query_params.get('subject_id')
         academic_year_id = self.request.query_params.get('academic_year_id')
         academic_term_id = self.request.query_params.get('academic_term_id')
@@ -99,8 +56,9 @@ class ExamViewSet(viewsets.ModelViewSet):
         target_class_id = self.request.query_params.get('target_class_id')
         target_section_id = self.request.query_params.get('target_section_id')
         stream_type = self.request.query_params.get('stream_type')
+        is_conducted = self.request.query_params.get('is_conducted')
 
-        # استخدام Q objects هنا لتحسين الأداء وتجنب التطبيق المتكرر للفلتر
+
         query_params_filters = Q()
 
         if subject_id:
@@ -118,9 +76,49 @@ class ExamViewSet(viewsets.ModelViewSet):
         if target_section_id:
             query_params_filters &= Q(target_section_id=target_section_id)
         if stream_type:
-            query_params_filters &= Q(stream_type=stream_type)
-        
-        # تطبيق جميع فلاتر query_params مرة واحدة
+            query_params_filters &= Q(target_section__stream_type=stream_type)
+        if is_conducted is not None: 
+            is_conducted_bool = is_conducted.lower() in ['true', '1', 't', 'y']
+            query_params_filters &= Q(is_conducted=is_conducted_bool)
+
         queryset = queryset.filter(query_params_filters).distinct()
         
         return queryset
+    def perform_create(self, serializer):
+       
+        serializer.save()
+
+    def perform_update(self, serializer):
+       
+        serializer.save()
+
+class ExamConductView(generics.RetrieveUpdateAPIView):
+    queryset = Exam.objects.all()
+    serializer_class = ExamSerializer
+    permission_classes = [IsTeacher]
+
+    def patch(self, request, *args, **kwargs):
+        exam = self.get_object()
+        
+        # التحقق من أن المستخدم هو المعلم المسؤول عن هذا الاختبار
+        if exam.teacher != request.user.teacher_profile:
+            return Response(
+                {"detail": _("ليس لديك الصلاحية لإجراء هذا الاختبار.")},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        if exam.is_conducted:
+            return Response(
+                {"detail": _("هذا الاختبار قد تم إجراؤه بالفعل.")},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        exam.is_conducted = True
+        exam.save()
+        
+        serializer = self.get_serializer(exam)
+        
+        return Response(
+            {"detail": _("تم إجراء الاختبار بنجاح.")},
+            status=status.HTTP_200_OK
+        )

@@ -1,11 +1,15 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from accounts.models import AutoCreateAndAutoUpdateTimeStampedModel,User
+from schedules.models import ClassSchedule
 from subject.models import Subject
 from academic.models import AcademicYear, AcademicTerm
 from classes.models import Class, Section 
 from students.models import Student
 import datetime
+from django.db.models import Q
+
+from teachers.models import Teacher
 
 class Exam(AutoCreateAndAutoUpdateTimeStampedModel):
     EXAM_TYPE_CHOICES = [
@@ -17,9 +21,9 @@ class Exam(AutoCreateAndAutoUpdateTimeStampedModel):
     ]
 
     STREAM_TYPE_CHOICES = [
-        ('scientific', _('علمي')),
-        ('literary', _('أدبي')),
-        ('general', _('عام')),
+        ('General', _('عام')),
+        ('Scientific', _('علمي')),
+        ('Literary', _('أدبي')),
     ]
 
     subject = models.ForeignKey(
@@ -56,6 +60,15 @@ class Exam(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("الدرجة الكلية"),
         help_text=_("الدرجة الكلية الممكنة لهذا الاختبار.")
     )
+    teacher = models.ForeignKey(
+        Teacher,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='exams_created',
+        verbose_name=_("المعلم المسؤول"),
+        help_text=_("المعلم المسؤول عن هذا الاختبار.")
+    )
     
     target_class = models.ForeignKey(
         Class,
@@ -73,6 +86,11 @@ class Exam(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("الشعبة المستهدفة"),
         help_text=_("الشعبة المحددة داخل الصف المستهدف.")
     )
+    is_conducted = models.BooleanField(
+        default=False,
+        verbose_name=_("هل تم إجراء الاختبار؟"),
+        help_text=_("يشير إلى ما إذا كان الاختبار قد تم إجراؤه بالفعل.")
+    )
     stream_type = models.CharField(
         max_length=20,
         choices=STREAM_TYPE_CHOICES,
@@ -81,30 +99,24 @@ class Exam(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("نوع التخصص"),
         help_text=_("نوع التخصص المستهدف (مثال: علمي، أدبي) ضمن الصف المحدد.")
     )
-
+    
     class Meta:
         verbose_name = _("اختبار")
         verbose_name_plural = _("الاختبارات")
         ordering = ['-exam_date', 'subject__name']
-        
         unique_together = [
             ['subject', 'academic_year', 'academic_term', 'exam_type', 'exam_date', 'target_class', 'target_section', 'stream_type']
         ]
 
-
     def __str__(self):
         details = []
-        # الأولوية للشعبة، لأنها الأكثر تحديداً
         if self.target_section:
-            details.append(str(self.target_section.class_obj)) # الصف الذي تنتمي إليه الشعبة
-            details.append(str(self.target_section)) # اسم الشعبة
-            if self.target_section.stream_type:
-                details.append(self.target_section.get_stream_type_display())
+            details.append(str(self.target_section.class_obj))
+            details.append(str(self.target_section))
+            details.append(self.target_section.get_stream_type_display())
         elif self.target_class:
             details.append(str(self.target_class))
-            if self.stream_type: 
-                details.append(self.get_stream_type_display())
-        
+
         target_str = f"({', '.join(details)})" if details else "(عام لجميع الصفوف/الشعب/التخصصات)"
 
         return (
@@ -114,98 +126,110 @@ class Exam(AutoCreateAndAutoUpdateTimeStampedModel):
 
     def clean(self):
         from django.core.exceptions import ValidationError
+        from subject.models import TeacherSubject
 
-        if self.exam_date > datetime.date.today():
-            raise ValidationError(
-                _("لا يمكن تحديد تاريخ اختبار مستقبلي.")
-            )
         if self.total_marks <= 0:
-            raise ValidationError(
-                _("يجب أن تكون الدرجة الكلية للاختبار أكبر من صفر.")
-            )
+            raise ValidationError(_("يجب أن تكون الدرجة الكلية للاختبار أكبر من صفر."))
+        
+        if not (self.target_class or self.target_section):
+            raise ValidationError(_("يجب تحديد الصف المستهدف على الأقل لإنشاء امتحان."))
+         # التحقق من التناسق: لا يمكن تحديد شعبة ونوع تخصص في نفس الوقت
+        if self.target_section and self.stream_type:
+            raise ValidationError(_("لا يمكن تحديد شعبة محددة ونوع تخصص في نفس الوقت. اختر أحدهما فقط."))
 
-       
-        if self.target_section:
-            if not self.target_class:
-                self.target_class = self.target_section.class_obj
-            elif self.target_class != self.target_section.class_obj:
-                raise ValidationError(
-                    _("الشعبة المستهدفة يجب أن تنتمي إلى الصف المستهدف المحدد.")
-                )
-            if self.stream_type:
-                raise ValidationError(
-                    _("لا يمكن تحديد نوع تخصص للامتحان عند استهداف شعبة محددة. تخصص الشعبة هو المحدد.")
-                )
+        # التحقق من أن الشعبة تنتمي للصف المحدد
+        if self.target_section and self.target_class and self.target_section.class_obj != self.target_class:
+            raise ValidationError(_("الشعبة المستهدفة لا تنتمي إلى الصف المستهدف."))
         
-       
-        elif self.stream_type: 
-            if not self.target_class:
-                raise ValidationError(
-                    _("عند تحديد نوع التخصص (مثل علمي أو أدبي)، يجب تحديد الصف المستهدف.")
-                )
+        if self.target_class and self.stream_type:
+            if not Section.objects.filter(class_obj=self.target_class, stream_type=self.stream_type).exists():
+                 raise ValidationError(_("الصف المحدد لا يحتوي على شعب من نوع التخصص المحدد."))
+        # التحقق من أن المعلم يدرس المادة المستهدفة
+        if self.teacher and self.subject:
+            if not TeacherSubject.objects.filter(teacher=self.teacher, subject=self.subject).exists():
+                raise ValidationError(_("المعلم المحدد لا يدرس المادة المستهدفة لهذا الاختبار."))
         
-        # 3. منع تضارب الامتحانات لنفس المادة/التاريخ/النوع/الفصل/العام
-        # هذا هو الجزء الأكثر أهمية لضمان التفرد الدقيق
-        # يجب أن نتحقق من عدم وجود امتحان آخر يغطي نفس الطلاب لنفس الظروف
-        
-        # تصفية الامتحانات الأخرى التي قد تتعارض (بنفس المادة، العام، الفصل، النوع، التاريخ)
+        # التحقق من أن الشعبة تنتمي إلى الصف
+        if self.target_section and self.target_class and self.target_section.class_obj != self.target_class:
+            raise ValidationError(_("الشعبة المستهدفة يجب أن تنتمي إلى الصف المستهدف المحدد."))
+
+        # التحقق من التضارب (الأساسي)
+        # هذا الشرط يمنع وجود امتحانين بنفس المواصفات بالضبط
         conflicting_exams_query = Exam.objects.filter(
             subject=self.subject,
             academic_year=self.academic_year,
             academic_term=self.academic_term,
             exam_type=self.exam_type,
-            exam_date=self.exam_date
-        )
-        # استبعاد الكائن الحالي إذا كان يتم تحريره بدلاً من إنشائه
-        if self.pk:
-            conflicting_exams_query = conflicting_exams_query.exclude(pk=self.pk)
+            exam_date=self.exam_date,
+            target_class=self.target_class,
+            target_section=self.target_section,
+            stream_type=self.stream_type
+        ).exclude(pk=self.pk)
 
-        # Iterate over potential conflicts
-        for existing_exam in conflicting_exams_query:
-            # أ. تعارض مع امتحان عام للصف كاملاً (existing_exam يستهدف صفاً فقط)
-            if existing_exam.target_class and not existing_exam.target_section and not existing_exam.stream_type:
-                # إذا كان الامتحان الجديد يستهدف نفس الصف (كامل، شعبة منه، أو تخصص منه)
-                if self.target_class == existing_exam.target_class:
-                    if not self.target_section and not self.stream_type: # الجديد عام لنفس الصف
-                        raise ValidationError(_(f"يوجد بالفعل امتحان عام للصف {self.target_class.name} في نفس التاريخ ونوع الاختبار."))
-                    elif self.target_section and self.target_section.class_obj == existing_exam.target_class: # الجديد لشعبة من نفس الصف
-                        raise ValidationError(_(f"يوجد بالفعل امتحان عام للصف {self.target_class.name} يتعارض مع هذا الامتحان لشعبة {self.target_section.name}."))
-                    elif self.stream_type and self.target_class == existing_exam.target_class: # الجديد لتخصص من نفس الصف
-                        raise ValidationError(_(f"يوجد بالفعل امتحان عام للصف {self.target_class.name} يتعارض مع هذا الامتحان لتخصص {self.get_stream_type_display()}."))
+        if conflicting_exams_query.exists():
+            raise ValidationError(_("يوجد بالفعل امتحان بنفس المواصفات في نفس التاريخ."))
+        if self.teacher and self.subject:
+        # إذا كان الامتحان يستهدف شعبة محددة
+            if self.target_section:
+                has_schedule = ClassSchedule.objects.filter(
+                    teacher=self.teacher,
+                    subject=self.subject,
+                    section=self.target_section,
+                    academic_year=self.academic_year,
+                    academic_term=self.academic_term
+                ).exists()
+                if not has_schedule:
+                    raise ValidationError(
+                        _("المعلم المحدد لا يدرس هذه المادة في الشعبة المستهدفة لهذا الفصل الدراسي.")
+                    )
+                # إذا كان الامتحان يستهدف صفًا كاملاً (جميع شعبه)
+                elif self.target_class:
+                    has_schedule = ClassSchedule.objects.filter(
+                        teacher=self.teacher,
+                        subject=self.subject,
+                        section__class_obj=self.target_class,
+                        academic_year=self.academic_year,
+                        academic_term=self.academic_term
+                    ).exists()
+                    if not has_schedule:
+                        raise ValidationError(
+                            _("المعلم المحدد لا يدرس هذه المادة في أي شعبة من الصف المستهدف لهذا الفصل الدراسي.")
+                        )
+                # إذا كان الامتحان عاماً (لا يستهدف شعبة أو صف)
+                else:
+                    has_teacher_subject = TeacherSubject.objects.filter(
+                        teacher=self.teacher,
+                        subject=self.subject
+                    ).exists()
+                    if not has_teacher_subject:
+                        raise ValidationError(
+                            _("المعلم المحدد لا يدرس المادة المستهدفة لهذا الاختبار.")
+                        )
+        # التحقق من تضارب الوقت
+        # هنا نتحقق من عدم وجود امتحان آخر في نفس الوقت لنفس الصف أو الشعبة
+        conflicting_time_query = Exam.objects.filter(
+            exam_date=self.exam_date,
+            academic_year=self.academic_year,
+            academic_term=self.academic_term
+        ).exclude(pk=self.pk)
 
-            # ب. تعارض مع امتحان يستهدف شعبة محددة (existing_exam يستهدف شعبة)
-            elif existing_exam.target_section:
-                # إذا كان الامتحان الجديد يستهدف نفس الشعبة
-                if self.target_section == existing_exam.target_section:
-                    raise ValidationError(_(f"يوجد بالفعل امتحان للشعبة {self.target_section.name} في نفس التاريخ ونوع الاختبار."))
-                # إذا كان الامتحان الجديد يستهدف صفاً كاملاً يتضمن هذه الشعبة
-                elif self.target_class == existing_exam.target_section.class_obj and \
-                     not self.target_section and not self.stream_type:
-                     raise ValidationError(_(f"يوجد امتحان للشعبة {existing_exam.target_section.name} يتعارض مع هذا الامتحان العام لصف {self.target_class.name}."))
-                # إذا كان الامتحان الجديد يستهدف تخصصاً يضم هذه الشعبة
-                elif self.target_class == existing_exam.target_section.class_obj and \
-                     self.stream_type == existing_exam.target_section.stream_type and \
-                     not self.target_section:
-                     raise ValidationError(_(f"يوجد امتحان للشعبة {existing_exam.target_section.name} يتعارض مع هذا الامتحان لتخصص {self.get_stream_type_display()}."))
+        if self.target_section:
+            conflicting_time_query = conflicting_time_query.filter(
+                Q(target_section=self.target_section) |
+                Q(target_class=self.target_section.class_obj) |
+                Q(target_section__class_obj=self.target_section.class_obj)
+            )
+        elif self.target_class:
+            conflicting_time_query = conflicting_time_query.filter(
+                Q(target_class=self.target_class) |
+                Q(target_section__class_obj=self.target_class)
+            )
 
-            # ج. تعارض مع امتحان يستهدف صف وتخصص معين (existing_exam يستهدف صف وتخصص)
-            elif existing_exam.target_class and existing_exam.stream_type:
-                # إذا كان الامتحان الجديد يستهدف نفس الصف ونفس التخصص
-                if self.target_class == existing_exam.target_class and \
-                   self.stream_type == existing_exam.stream_type:
-                    raise ValidationError(_(f"يوجد بالفعل امتحان لـ {self.target_class.name} {self.get_stream_type_display()} في نفس التاريخ ونوع الاختبار."))
-                # إذا كان الامتحان الجديد يستهدف صفاً كاملاً (ويتضارب مع تخصص منه)
-                elif self.target_class == existing_exam.target_class and \
-                     not self.target_section and not self.stream_type:
-                    raise ValidationError(_(f"يوجد امتحان لـ {existing_exam.target_class.name} {existing_exam.get_stream_type_display()} يتعارض مع هذا الامتحان العام لصف {self.target_class.name}."))
-                # إذا كان الامتحان الجديد يستهدف شعبة تنتمي لهذا الصف وهذا التخصص
-                elif self.target_section and \
-                     self.target_section.class_obj == existing_exam.target_class and \
-                     self.target_section.stream_type == existing_exam.stream_type:
-                    raise ValidationError(_(f"يوجد امتحان لـ {existing_exam.target_class.name} {existing_exam.get_stream_type_display()} يتعارض مع هذا الامتحان لشعبة {self.target_section.name}."))
+        if conflicting_time_query.exists():
+            raise ValidationError(_("يوجد امتحان آخر في نفس الوقت لهذه الشعبة أو الصف."))
+
         
         super().clean()
-
 
 
 

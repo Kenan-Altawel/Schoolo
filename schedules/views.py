@@ -37,9 +37,6 @@ class SectionSubjectsListView(generics.ListAPIView):
         get_object_or_404(Class, id=class_id)
         section = get_object_or_404(Section, id=section_id)
 
-        # فلترة المواد التي تنتمي لهذا الصف أو الشعبة أو العام الدراسي
-        # هذا يعتمد على منطق ربط المواد بالصفوف/الشعب في موديل Subject
-        # هنا نفترض أن المادة يمكن أن ترتبط بـ Class أو Section
         queryset = Subject.objects.filter(
             models.Q(class_obj=section.class_obj) |
             models.Q(section=section)
