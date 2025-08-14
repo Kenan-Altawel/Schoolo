@@ -1,6 +1,7 @@
 # subject/models.py
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from academic.models import AcademicTerm, AcademicYear
 from accounts.models import AutoCreateAndAutoUpdateTimeStampedModel, User
 from classes.models import Class,Section
 from teachers.models import Teacher
@@ -95,6 +96,19 @@ class Subject(AutoCreateAndAutoUpdateTimeStampedModel):
         help_text=_("عدد الحصص الأسبوعية الافتراضي لهذه المادة، يستخدم عند عدم تحديد عدد معين للشعبة.")
     )
 
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        related_name='subjects_in_year',
+        verbose_name=_("العام الدراسي")
+    )
+
+    academic_term = models.ForeignKey(
+        AcademicTerm,
+        on_delete=models.CASCADE,
+        related_name='subjects_in_term',
+        verbose_name=_("الفصل الدراسي")
+    )
 
     class Meta:
         verbose_name = _("مادة دراسية")
@@ -102,14 +116,14 @@ class Subject(AutoCreateAndAutoUpdateTimeStampedModel):
         ordering = ['name']
         constraints = [
             models.UniqueConstraint(
-                fields=['class_obj', 'stream_type', 'name'],
+                fields=['class_obj', 'stream_type', 'name', 'academic_year', 'academic_term'],
                 condition=models.Q(section__isnull=True), 
-                name='unique_subject_per_class_and_stream'
+                name='unique_subject_per_class_and_stream_term'
             ),
             models.UniqueConstraint(
-                fields=['section', 'name'],
+                fields=['section', 'name', 'academic_year', 'academic_term'],
                 condition=models.Q(class_obj__isnull=True, stream_type__isnull=True), 
-                name='unique_subject_per_section'
+                name='unique_subject_per_section_term'
             ),
         ]
 

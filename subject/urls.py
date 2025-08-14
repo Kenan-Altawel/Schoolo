@@ -9,5 +9,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('subjects-icons/', views.SubjectIconListView.as_view(), name='subject-icons-list'),
     path('subjects/<int:subject_id>/teachers/', views.SubjectTeachersListView.as_view(), name='subject-teachers-list'),
-
+    path('teachers/me/taught-sections/', views.TeacherTaughtSectionsView.as_view(), name='teacher-taught-sections'),
 ]

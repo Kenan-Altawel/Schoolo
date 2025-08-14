@@ -4,9 +4,13 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import permissions
 from django.utils.translation import gettext_lazy as _
+
+from academic.models import AcademicTerm, AcademicYear
+from schedules.models import ClassSchedule
 from .models import Subject, SectionSubjectRequirement
 from .serializers import *
 from classes.models import Class, Section
+from classes.serializers import TaughtSectionSerializer
 from django.db import transaction
 from django.db.models import Q
 from accounts.permissions import *
@@ -15,6 +19,10 @@ from .filters import *
 from students.models import Student
 from teachers.models import Teacher 
 from .models import TeacherSubject
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied, NotFound
+
 
 class CustomPermission(permissions.BasePermission):
    
@@ -189,3 +197,46 @@ class SubjectIconListView(generics.ListAPIView):
     serializer_class = SubjectIconSerializer
     permission_classes = [IsAdminOrSuperuser]
     
+
+
+class TeacherTaughtSectionsView(ListAPIView):
+    """
+    عرض قائمة بجميع الشعب التي يدرسها الأستاذ الحالي، مع مراعاة العام والفصل الدراسي الحالي.
+    """
+    serializer_class = TaughtSectionSerializer
+    permission_classes = [IsTeacher]
+
+    def get_queryset(self):
+        user = self.request.user
+        teacher = Teacher.objects.get(user=user)
+
+        try:
+            current_academic_year = AcademicYear.objects.get(is_current=True)
+            current_academic_term = AcademicTerm.objects.get(
+                is_current=True, 
+                academic_year=current_academic_year
+            )
+        except (AcademicYear.DoesNotExist, AcademicTerm.DoesNotExist):
+            raise NotFound("لا يوجد عام أو فصل دراسي حالي محدد.")
+        
+        sections_taught_ids = ClassSchedule.objects.filter(
+            teacher=teacher,
+            academic_year=current_academic_year,
+            academic_term=current_academic_term
+        ).values_list('section_id', flat=True).distinct()
+        
+        # 2. البحث عن كائنات الشعب (Section objects) باستخدام هذه المعرفات
+        queryset = Section.objects.filter(id__in=sections_taught_ids)
+
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        response_data = {
+            "sections you are teaching": queryset.count(),
+            "sections": serializer.data
+        }
+        
+        return Response(response_data)

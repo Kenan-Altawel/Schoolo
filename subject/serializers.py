@@ -63,7 +63,7 @@ class SubjectSerializer(serializers.ModelSerializer):
 
     def get_icon_url(self, obj):
         if obj.icon and obj.icon.icon_file:
-            return obj.icon.icon_file.url
+            return f"{settings.SITE_DOMAIN}{obj.icon.icon_file.url}"
         return None
 
     def validate(self, data):

@@ -58,3 +58,24 @@ class SectionSerializer(serializers.ModelSerializer):
         validated_data.pop('academic_year', None)
         validated_data.pop('class_obj', None)
         return super().update(instance, validated_data)
+    
+
+class TaughtClassSerializer(serializers.ModelSerializer):
+    """سيريالايزر بسيط لعرض اسم الفصل الدراسي فقط."""
+    class Meta:
+        model = Class
+        fields = ['id', 'name']
+
+class TaughtSectionSerializer(serializers.ModelSerializer):
+    """سيريالايزر لعرض الشعبة والصف المرتبط بها."""
+    students_count = serializers.SerializerMethodField(read_only=True)
+    class_obj = TaughtClassSerializer(read_only=True)
+    class Meta:
+        model = Section
+        fields = ['id', 'name', 'class_obj','students_count']
+
+    def get_students_count(self, obj):
+        """
+        يحسب عدد الطلاب في الشعبة.
+        """
+        return obj.students.count()
