@@ -8,4 +8,7 @@ urlpatterns = [
     path('<int:user_id>/student-status/', ApproveStudentAPIView.as_view(), name='student-accept-reject'),
     path('add-student/', ManagerAddStudentAPIView.as_view(), name='manager-add-student'),
     path('students-list/',StudentListAPIView.as_view(), name='section-students-list'),
+    path('profile/update/', StudentProfileUpdateView.as_view(), name='student-profile-update'),
+    path('<int:pk>/update-student/', ManagerStudentUpdateView.as_view(), name='manager-student-update'),
+    path('<int:pk>/delete-student/', ManagerStudentDeleteView.as_view(), name='manager-student-delete'),
 ]

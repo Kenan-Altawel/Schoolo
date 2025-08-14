@@ -242,3 +242,51 @@ class StudentListSerializer(serializers.ModelSerializer):
                 "last_name": user.last_name,
             }
         return None
+
+class StudentProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['address',  'image']
+
+
+class ManagerStudentUpdateSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name', required=False)
+    last_name = serializers.CharField(source='user.last_name', required=False)
+    is_active = serializers.BooleanField(source='user.is_active', required=False)
+    phone_number = serializers.CharField(source='user.phone_number', required=False)
+    
+    class Meta:
+        model = Student
+        fields = [
+            'first_name', 'last_name', 'is_active', 'phone_number',
+            'father_name', 'gender', 'date_of_birth', 'address',
+            'parent_phone', 'image', 'student_class', 'section',
+            'student_status'
+        ]
+
+    def validate(self, data):
+        section = data.get('section', self.instance.section)
+        student_class = data.get('student_class', self.instance.student_class)
+
+        if section and student_class and section.class_obj != student_class:
+            raise serializers.ValidationError(
+                {"section": "الشعبة المحددة لا تنتمي للمرحلة الدراسية المحددة."}
+            )
+        
+        if section and section != self.instance.section:
+            if section.students.count() >= section.capacity:
+                raise serializers.ValidationError(
+                    {"section": "الشعبة المحددة وصلت إلى سعتها القصوى."}
+                )
+        return data
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        
+        user = instance.user
+        for attr, value in user_data.items():
+            setattr(user, attr, value)
+        user.save()
+        
+        return super().update(instance, validated_data)

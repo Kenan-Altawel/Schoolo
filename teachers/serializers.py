@@ -4,6 +4,7 @@ from rest_framework import serializers
 from .models import Teacher, TeacherAvailability
 from django.utils.translation import gettext_lazy as _
 from subject.models import TeacherSubject
+from django.db import transaction
 
 class TeacherAvailabilitySerializer(serializers.ModelSerializer):
     day_name = serializers.SerializerMethodField()
@@ -65,3 +66,28 @@ class TeacherSubjectSerializer(serializers.ModelSerializer):
 
     def get_subject_name(self, obj):
         return obj.subject.name
+    
+
+class ManagerTeacherUpdateSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name', required=False)
+    last_name = serializers.CharField(source='user.last_name', required=False)
+    is_active = serializers.BooleanField(source='user.is_active', required=False)
+    phone_number = serializers.CharField(source='user.phone_number', required=False)
+    
+    class Meta:
+        model = Teacher
+        fields = [
+            'first_name', 'last_name', 'phone_number', 'is_active',
+            'address', 'specialization'
+        ]
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        
+        user = instance.user
+        for attr, value in user_data.items():
+            setattr(user, attr, value)
+        user.save()
+        
+        return super().update(instance, validated_data)
