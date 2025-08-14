@@ -179,3 +179,13 @@ class SubjectTeachersListView(generics.ListAPIView):
     def get_queryset(self):
         subject_id = self.kwargs['subject_id']
         return TeacherSubject.objects.filter(subject_id=subject_id)
+    
+
+class SubjectIconListView(generics.ListAPIView):
+    """
+    عرض قائمة بجميع أيقونات المواد الدراسية.
+    """
+    queryset = SubjectIcon.objects.all()
+    serializer_class = SubjectIconSerializer
+    permission_classes = [IsAdminOrSuperuser]
+    

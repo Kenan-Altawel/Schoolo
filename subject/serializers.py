@@ -1,12 +1,11 @@
 # subject/serializers.py
 from rest_framework import serializers
-from .models import Subject, SectionSubjectRequirement
 from classes.models import Class, Section
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from teachers.models import Teacher
 from accounts.models import User
-
+from .models import *
 
 class SectionSubjectRequirementSerializer(serializers.ModelSerializer):
     section_name = serializers.CharField(source='section.name', read_only=True)
@@ -16,6 +15,16 @@ class SectionSubjectRequirementSerializer(serializers.ModelSerializer):
         model = SectionSubjectRequirement
         fields = ['id', 'section', 'subject', 'weekly_lessons_required', 'section_name', 'class_name']
         read_only_fields = ['subject']
+
+
+class SubjectIconSerializer(serializers.ModelSerializer):
+    """
+    سيريالايزر لعرض تفاصيل أيقونة المادة.
+    """
+    class Meta:
+        model = SubjectIcon
+        fields = ['id', 'name', 'icon_file']
+
 
 
 class SubjectSerializer(serializers.ModelSerializer):
@@ -32,7 +41,13 @@ class SubjectSerializer(serializers.ModelSerializer):
     section_name = serializers.CharField(source='section.name', read_only=True)
     stream_type_display = serializers.CharField(source='get_stream_type_display', read_only=True)
 
-    # pdf_file = serializers.SerializerMethodField()
+    icon_url = serializers.SerializerMethodField(read_only=True)
+    
+    icon = serializers.PrimaryKeyRelatedField(
+        queryset=SubjectIcon.objects.all(), 
+        allow_null=True, required=False,
+        label=_("أيقونة المادة")
+    )
 
     class Meta:
         model = Subject
@@ -42,14 +57,14 @@ class SubjectSerializer(serializers.ModelSerializer):
             'class_obj', 'section',
             'class_obj_name', 'section_name', 'stream_type_display',
             'default_weekly_lessons',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at','icon', 'icon_url'
         ]
-        read_only_fields = ('created_at', 'updated_at')
+        read_only_fields = ('created_at', 'updated_at','icon_url')
 
-    # def get_pdf_file(self, obj):
-    #     if obj.pdf_file and hasattr(obj.pdf_file, 'url'):
-    #         return obj.pdf_file.url
-    #     return None
+    def get_icon_url(self, obj):
+        if obj.icon and obj.icon.icon_file:
+            return obj.icon.icon_file.url
+        return None
 
     def validate(self, data):
         class_obj = data.get('class_obj')
@@ -128,7 +143,6 @@ class SubjectSerializer(serializers.ModelSerializer):
 
         return data
     
-from .models import Subject, TeacherSubject # تأكد من استيراد TeacherSubject و Subject
 
 class TeacherSubjectAssignmentSerializer(serializers.Serializer):
     """
@@ -158,8 +172,7 @@ class SubjectSerializer2(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class TeacherSerializer(serializers.ModelSerializer):
-    # first_name = serializers.CharField(source='user.first_name')
-    # last_name = serializers.CharField(source='user.last_name')
+   
     full_name = serializers.SerializerMethodField() 
     user_id = serializers.IntegerField(source='user.id')
     class Meta:

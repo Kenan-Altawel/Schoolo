@@ -6,6 +6,28 @@ from classes.models import Class,Section
 from teachers.models import Teacher
 from django.core.exceptions import ValidationError
 
+class SubjectIcon(AutoCreateAndAutoUpdateTimeStampedModel):
+    """
+    موديل لتخزين أيقونات المواد الدراسية.
+    """
+    name = models.CharField(
+        max_length=150,
+        unique=True,
+        verbose_name=_("اسم الأيقونة")
+    )
+    icon_file = models.ImageField(
+        upload_to='subject/subject_files/icons/',
+        verbose_name=_("ملف الأيقونة"),
+        help_text=_("تحميل ملف الأيقونة كصورة (يفضل صيغة SVG أو PNG).")
+    )
+
+    class Meta:
+        verbose_name = _("أيقونة المادة")
+        verbose_name_plural = _("أيقونات المواد")
+
+    def __str__(self):
+        return self.name
+    
 class Subject(AutoCreateAndAutoUpdateTimeStampedModel):
     STREAM_TYPE_CHOICES = [
         ('Scientific', _('علمي')),
@@ -52,15 +74,21 @@ class Subject(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("هل المادة نشطة؟"),
         help_text=_("يشير إلى ما إذا كانت هذه المادة متاحة للتدريس.")
     )
-    # >>> التعديل هنا: تغيير pdf_url إلى pdf_file ونوع FileField <<<
-    pdf_file = models.FileField( # تغيير نوع الحقل
-        upload_to='subject/subject_pdfs/', # هذا المجلد سيتم إنشاؤه داخل MEDIA_ROOT
+    pdf_file = models.FileField( 
+        upload_to='subject/subject_files/subject_pdfs/',
         blank=True,
         null=True,
         verbose_name=_("ملف المنهج الدراسي PDF"),
         help_text=_("رفع ملف المنهج الدراسي أو مواد مساعدة بصيغة PDF.")
     )
-    # icon = models.ImageField(upload_to='subject/media/subject_icons/', null=True, blank=True)
+    icon = models.ForeignKey(
+        SubjectIcon,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='subjects_with_icon',
+        verbose_name=_("أيقونة المادة")
+    )    
     default_weekly_lessons = models.PositiveIntegerField(
         verbose_name=_("عدد الحصص الأسبوعية الافتراضي"),
         default=0,

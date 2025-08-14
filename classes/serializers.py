@@ -4,24 +4,38 @@ from .models import Class, Section
 from django.utils.translation import gettext_lazy as _
 
 class ClassSerializer(serializers.ModelSerializer):
+    sections_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Class
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'sections_count']
+
+    def get_sections_count(self, obj):
+        """
+        يحسب عدد الشعب التابعة لهذا الفصل.
+        """
+        return obj.sections.count()
 
 class SectionSerializer(serializers.ModelSerializer):
     academic_year_name = serializers.CharField(source='academic_year.name', read_only=True)
     class_name = serializers.CharField(source='class_obj.name', read_only=True)
     class_id = serializers.IntegerField(source='class_obj.id', read_only=True)
+    remaining_capacity = serializers.SerializerMethodField()
 
     class Meta:
         model = Section
         fields = [
-            'id', 'name', 'stream_type', 'capacity', 'is_active',
+            'id', 'name', 'stream_type', 'capacity', 'students_count', 'remaining_capacity', 'is_active',
             'activation_date', 'deactivation_date',
             'academic_year_name', 'class_name', 'class_id',
         ]
         read_only_fields = ['academic_year', 'class_obj', 'activation_date', 'deactivation_date']
 
+    def get_remaining_capacity(self, obj):
+        if obj.capacity is not None:
+            return obj.capacity - obj.students_count
+        return None
+    
     def create(self, validated_data):
         class_obj = self.context.get('class_obj')
         if not class_obj:

@@ -2,11 +2,16 @@
 
 from django.shortcuts import get_object_or_404
 from rest_framework import generics ,status
+from academic.models import AcademicTerm, AcademicYear
 from accounts.permissions import *
+from schedules.models import ClassSchedule
+from teachers.models import Teacher
 from .models import Student 
-from .serializers import PendingStudentApplicationSerializer ,StudentAcceptanceSerializer
+from .serializers import *
 from classes.models import Class
 from accounts.models import User
+from rest_framework.exceptions import PermissionDenied
+
 class PendingStudentList(generics.ListAPIView):
     """
     يعرض قائمة بجميع طلبات تسجيل الطلاب المعلقة (التي لم يتم قبولها بعد).
@@ -75,3 +80,82 @@ class ApproveStudentAPIView(generics.UpdateAPIView):
         
         student = serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class ManagerAddStudentAPIView(generics.CreateAPIView):
+    serializer_class = ManagerStudentCreationSerializer
+    permission_classes = [IsAdminOrSuperuser]
+
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        student_instance = serializer.save()
+        
+        response_data = {
+            "message": "students added successfully",
+            "student_data": serializer.data
+        }
+        
+        return Response(response_data, status=status.HTTP_201_CREATED)
+    
+
+class IsManagerOrTeacher(permissions.BasePermission):
+    """
+    صلاحية تسمح بالوصول فقط للمديرين والمشرفين والأساتذة.
+    """
+    def has_permission(self, request, view):
+        user = request.user
+        return user.is_authenticated and (user.is_superuser or user.is_admin() or user.is_teacher())
+
+class StudentListAPIView(generics.ListAPIView):
+    serializer_class = StudentListSerializer
+    permission_classes = [IsManagerOrTeacher]
+
+class StudentListAPIView(generics.ListAPIView):
+    serializer_class = StudentListSerializer
+    permission_classes = [IsManagerOrTeacher]
+
+    def get_queryset(self):
+        user = self.request.user
+        section_id_param = self.request.query_params.get('section_id')
+        
+        # دائماً نبدأ بـ QuerySet يحتوي فقط على الطلاب النشطين
+        queryset = Student.objects.filter(user__is_active=True)
+
+        # التحقق من دور المستخدم وتطبيق الفلاتر المناسبة
+        if user.is_superuser or user.is_admin():
+            # إذا كان المستخدم مديراً أو مشرفاً
+            class_id_param = self.request.query_params.get('class_id')
+            
+            if section_id_param:
+                queryset = queryset.filter(section_id=section_id_param)
+            elif class_id_param:
+                queryset = queryset.filter(student_class_id=class_id_param)
+            
+        elif user.is_teacher():
+            try:
+                teacher_instance = Teacher.objects.get(user=user)
+                current_academic_year = AcademicYear.objects.get(is_current=True)
+                current_academic_term = AcademicTerm.objects.get(is_current=True, academic_year=current_academic_year)
+                
+                # جلب الشعب التي يدرسها الأستاذ في العام والفصل الدراسي الحالي
+                sections_taught_ids = ClassSchedule.objects.filter(
+                    teacher=teacher_instance,
+                    academic_year=current_academic_year,
+                    academic_term=current_academic_term
+                ).values_list('section_id', flat=True).distinct()
+                
+                if section_id_param:
+                    if int(section_id_param) in sections_taught_ids:
+                        queryset = queryset.filter(section_id=section_id_param)
+                    else:
+                        raise PermissionDenied("ليس لديك الصلاحية لعرض طلاب هذا القسم.")
+                else:
+                    queryset = queryset.filter(section_id__in=sections_taught_ids)
+                    
+            except (AcademicYear.DoesNotExist, AcademicTerm.DoesNotExist):
+                queryset = Student.objects.none()
+            except AttributeError:
+                queryset = Student.objects.none()
+        
+        return queryset.select_related('user', 'student_class', 'section')

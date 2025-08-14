@@ -39,7 +39,7 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
     student_class = serializers.PrimaryKeyRelatedField(queryset=Class.objects.all(), required=True,allow_null=False,label=_("الصف الدراسي"))
     date_of_birth = serializers.DateField(required=False, allow_null=True, label="تاريخ الميلاد")
     image = serializers.ImageField(required=False, allow_null=True, label="صورة الطالب")
-
+    
 
     class Meta:
         model = User

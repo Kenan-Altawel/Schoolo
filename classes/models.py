@@ -33,6 +33,7 @@ class Section(AutoCreateAndAutoUpdateTimeStampedModel):
     is_active = models.BooleanField(default=False,verbose_name=_("هل القسم نشط؟"),help_text=_("يشير إلى ما إذا كان القسم قيد الاستخدام حاليًا."))
     activation_date = models.DateTimeField(null=True,blank=True,verbose_name=_("تاريخ التفعيل"))
     deactivation_date = models.DateTimeField(null=True,blank=True,verbose_name=_("تاريخ إلغاء التفعيل"))
+    students_count = models.PositiveIntegerField(default=0, verbose_name=_("عدد الطلاب الحالي"), editable=False)
 
     class Meta:
         verbose_name = _("القسم")
