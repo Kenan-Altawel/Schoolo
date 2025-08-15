@@ -1,6 +1,7 @@
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from academic.models import AcademicTerm, AcademicYear
 from accounts.models import AutoCreateAndAutoUpdateTimeStampedModel, User
 from students.models import Student 
 import datetime 
@@ -11,6 +12,7 @@ class Attendance(AutoCreateAndAutoUpdateTimeStampedModel):
         ('absent', _('غائب')),
         ('late', _('متأخر')),
         ('excused', _('معذور')),
+        
     ]
 
     student = models.ForeignKey(
@@ -38,13 +40,29 @@ class Attendance(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("تم التسجيل بواسطة"),
         related_name='recorded_attendances'
     )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='attendances',
+        verbose_name=_("العام الدراسي")
+    )
+    academic_term = models.ForeignKey(
+        AcademicTerm,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='attendances',
+        verbose_name=_("الفصل الدراسي")
+    )
 
     class Meta:
         verbose_name = _("سجل حضور")
         verbose_name_plural = _("سجلات الحضور")
         ordering = ['-date', 'student__user__first_name']
         unique_together = [
-            ['student', 'date']
+            ['student', 'date', 'academic_term','academic_year'] 
         ]
 
     def __str__(self):

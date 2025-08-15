@@ -246,58 +246,108 @@ class GradeViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         instance.delete()
 
-    # @action(detail=False, methods=['get'])
-    # def calculate_student_averages(self, request):
-    #     student_id = request.query_params.get('student_id')
-        
-    #     if not student_id:
-    #         return Response(
-    #             {"detail": _("يجب توفير رقم تعريف الطالب.")},
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
-        
-    #     try:
-    #         student = Student.objects.get(id=student_id)
-    #     except Student.DoesNotExist:
-    #         return Response(
-    #             {"detail": _("الطالب غير موجود.")},
-    #             status=status.HTTP_404_NOT_FOUND
-    #         )
+    @action(detail=False, methods=['get'])
+    def calculate_student_averages(self, request):
+        student_id = request.query_params.get('student_id')
+        academic_year_id = request.query_params.get('academic_year_id')
+        academic_term_id = request.query_params.get('academic_term_id')
 
-    #     user = self.request.user
+        if not student_id:
+            return Response(
+                {"detail": _("يجب توفير رقم تعريف الطالب.")},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            student = Student.objects.get(id=student_id)
+        except Student.DoesNotExist:
+            return Response(
+                {"detail": _("الطالب غير موجود.")},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # التحقق من الصلاحيات
+        user = self.request.user
+        if user.is_teacher() and student.section.teacher != user.teacher_profile:
+            return Response(
+                {"detail": _("ليس لديك الصلاحية لعرض معدلات هذا الطالب.")},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        if user.is_student() and student.user != user:
+            return Response(
+                {"detail": _("ليس لديك الصلاحية لعرض معدلات طالب آخر.")},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # فلترة العلامات بناءً على الطالب والسنة والفصل (إذا تم توفيرهما)
+        grades_queryset = Grade.objects.filter(student=student)
         
-    #     if user.is_teacher() and student.section.teacher != user.teacher_profile:
-    #         return Response(
-    #             {"detail": _("ليس لديك الصلاحية لعرض معدلات هذا الطالب.")},
-    #             status=status.HTTP_403_FORBIDDEN
-    #         )
-    #     if user.is_student() and student.user != user:
-    #         return Response(
-    #             {"detail": _("ليس لديك الصلاحية لعرض معدلات طالب آخر.")},
-    #             status=status.HTTP_403_FORBIDDEN
-    #         )
+        if academic_year_id:
+            grades_queryset = grades_queryset.filter(exam__academic_year_id=academic_year_id)
+        
+        if academic_term_id:
+            grades_queryset = grades_queryset.filter(exam__academic_term_id=academic_term_id)
+
+        # حساب معدلات كل نوع امتحان
+        averages = grades_queryset.values('exam__exam_type').annotate(average_score=Avg('score'))
+
+        # تجهيز البيانات للرد
+        averages_by_type = {item['exam__exam_type']: item['average_score'] for item in averages}
+        
+        midterm_average = averages_by_type.get('midterm', None)
+        final_average = averages_by_type.get('final', None)
+        quiz_average = averages_by_type.get('quiz', None)
+        assignment_average = averages_by_type.get('assignment', None)
+
+        term_average = None
+        if midterm_average is not None and final_average is not None:
+            term_average = (midterm_average + final_average) / 2
+        
+        activities_average = None
+        activity_scores = [score for score in [quiz_average, assignment_average] if score is not None]
+        if activity_scores:
+            activities_average = sum(activity_scores) / len(activity_scores)
+
+        response_data = {
+            "student_id": student.id,
+            "student_name": student.user.get_full_name(),
+            "academic_year_id": academic_year_id,
+            "academic_term_id": academic_term_id,
+            "midterm_average": round(midterm_average, 2) if midterm_average is not None else None,
+            "final_average": round(final_average, 2) if final_average is not None else None,
+            "quiz_average": round(quiz_average, 2) if quiz_average is not None else None,
+            "assignment_average": round(assignment_average, 2) if assignment_average is not None else None,
+            "activities_average": round(activities_average, 2) if activities_average is not None else None,
+            "term_average": round(term_average, 2) if term_average is not None else None,
+        }
+        
+        # حساب معدل السنة الدراسية إذا لم يتم تحديد الفصل
+        if academic_year_id and not academic_term_id:
+            # يجب أن يكون لديك منطق للحصول على فصلي السنة الدراسية
+            # يمكن افتراض وجود فصلين لكل سنة دراسية
+            term_1_grades = Grade.objects.filter(
+                student=student, 
+                exam__academic_year_id=academic_year_id,
+                exam__academic_term_id=1  # مثال: رقم تعريف الفصل الأول
+            )
+            term_2_grades = Grade.objects.filter(
+                student=student, 
+                exam__academic_year_id=academic_year_id,
+                exam__academic_term_id=2  # مثال: رقم تعريف الفصل الثاني
+            )
+
+            term_1_midterm = term_1_grades.filter(exam__exam_type='midterm').aggregate(Avg('score'))['score__avg']
+            term_1_final = term_1_grades.filter(exam__exam_type='final').aggregate(Avg('score'))['score__avg']
+            term_1_avg = (term_1_midterm + term_1_final) / 2 if term_1_midterm and term_1_final else None
+
+            term_2_midterm = term_2_grades.filter(exam__exam_type='midterm').aggregate(Avg('score'))['score__avg']
+            term_2_final = term_2_grades.filter(exam__exam_type='final').aggregate(Avg('score'))['score__avg']
+            term_2_avg = (term_2_midterm + term_2_final) / 2 if term_2_midterm and term_2_final else None
+
+            yearly_average = None
+            if term_1_avg is not None and term_2_avg is not None:
+                yearly_average = (term_1_avg + term_2_avg) / 2
             
-    #     grades = Grade.objects.filter(student=student)
-        
-    #     midterm_average = grades.filter(exam__exam_type='midterm').aggregate(Avg('score'))['score__avg']
-    #     final_average = grades.filter(exam__exam_type='final').aggregate(Avg('score'))['score__avg']
-    #     quiz_average = grades.filter(exam__exam_type='quiz').aggregate(Avg('score'))['score__avg']
-    #     assignment_average = grades.filter(exam__exam_type='assignment').aggregate(Avg('score'))['score__avg']
+            response_data['yearly_average'] = round(yearly_average, 2) if yearly_average is not None else None
 
-    #     all_averages = [
-    #         avg for avg in [midterm_average, final_average, quiz_average, assignment_average] if avg is not None
-    #     ]
-        
-    #     final_overall_average = sum(all_averages) / len(all_averages) if all_averages else None
-
-    #     response_data = {
-    #         "student_id": student.id,
-    #         "student_name": student.user.get_full_name(),
-    #         "midterm_average": round(midterm_average, 2) if midterm_average is not None else None,
-    #         "final_average": round(final_average, 2) if final_average is not None else None,
-    #         "quiz_average": round(quiz_average, 2) if quiz_average is not None else None,
-    #         "assignment_average": round(assignment_average, 2) if assignment_average is not None else None,
-    #         "final_overall_average": round(final_overall_average, 2) if final_overall_average is not None else None,
-    #     }
-        
-    #     return Response(response_data, status=status.HTTP_200_OK)
+        return Response(response_data, status=status.HTTP_200_OK)
