@@ -13,20 +13,6 @@ from django.utils.translation import gettext_lazy as _
 from academic.models import AcademicTerm,AcademicYear
 
 
-class IsAuthenticatedAndTeacherForWrites(permissions.BasePermission):
-   
-    message = 'يجب أن تكون مسجلاً للدخول (authenticated) للوصول إلى هذا المحتوى، ويجب أن تكون معلماً لإنشاء أو تعديله.'
-
-    def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-
-        if request.method in permissions.SAFE_METHODS:
-            return request.user and request.user.is_authenticated
-        
-        else:
-            return IsTeacher().has_permission(request, view)
-  
 class SubjectContentViewSet(viewsets.ModelViewSet):
     serializer_class = SubjectContentSerializer
     permission_classes = [IsAuthenticatedAndTeacherForWrites] 

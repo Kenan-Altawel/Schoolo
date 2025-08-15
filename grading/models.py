@@ -254,20 +254,6 @@ class Grade(AutoCreateAndAutoUpdateTimeStampedModel):
         verbose_name=_("الدرجة المحرزة"),
         help_text=_("الدرجة التي حصل عليها الطالب في هذا الاختبار.")
     )
-    out_of = models.DecimalField( 
-        max_digits=5,
-        decimal_places=2,
-        verbose_name=_("من أصل"),
-        help_text=_("الدرجة القصوى الممكنة التي يمكن الحصول عليها في هذا التقييم.")
-    )
-    graded_by = models.ForeignKey( 
-        User,
-        on_delete=models.SET_NULL,
-        null=True, 
-        blank=True, 
-        verbose_name=_("تم التقييم بواسطة"),
-        related_name='graded_student_scores'
-    )
     graded_at = models.DateTimeField( # متى تم تسجيل الدرجة
         null=True,
         blank=True,
@@ -278,49 +264,12 @@ class Grade(AutoCreateAndAutoUpdateTimeStampedModel):
     class Meta:
         verbose_name = _("درجة")
         verbose_name_plural = _("الدرجات")
-        ordering = ['-exam__exam_date', 'student__user__first_name']
-        # قيد فريد لضمان درجة واحدة فقط لكل طالب في كل امتحان
         unique_together = [
             ['student', 'exam']
         ]
+        ordering = ['student__user__last_name']
 
     def __str__(self):
-        return (
-            f"{self.student.user.get_full_name()} - {self.exam.subject.name} "
-            f"{self.exam.get_exam_type_display()} - {self.score}/{self.out_of}"
-        )
+        return f"{self.student.user.get_full_name()} - {self.exam.get_exam_type_display()} ({self.score})"
 
-    def clean(self):
-        from django.core.exceptions import ValidationError
-
-        # التحقق من أن الدرجة المحرزة لا تتجاوز الدرجة الكلية للتقييم (out_of)
-        if self.score > self.out_of:
-            raise ValidationError(
-                _("لا يمكن أن تكون الدرجة المحرزة أكبر من الدرجة القصوى لهذا التقييم ({}).").format(self.out_of)
-            )
-
-        # التحقق من أن الدرجة المحرزة ليست سالبة
-        if self.score < 0:
-            raise ValidationError(
-                _("لا يمكن أن تكون الدرجة المحرزة سالبة.")
-            )
-        
-        # التحقق من أن out_of أكبر من صفر
-        if self.out_of <= 0:
-            raise ValidationError(
-                _("يجب أن تكون الدرجة القصوى للتقييم (out of) أكبر من صفر.")
-            )
-
-        # التحقق من أن graded_at ليس في المستقبل
-        if self.graded_at and self.graded_at > datetime.datetime.now():
-            raise ValidationError(
-                _("لا يمكن تحديد تاريخ ووقت تقييم مستقبلي.")
-            )
-        
-        # لا يوجد تحقق لدور graded_by هنا، حيث ستدير الصلاحيات بالمجموعات.
-        # إذا كان Graded_by إلزامياً، يجب إزالة null=True, blank=True منه.
-        # وقد ترغب في إضافة هذا التحقق إذا كان graded_by غير إلزامي ولكن يجب أن يكون موجوداً عند الحفظ:
-        # if not self.graded_by:
-        #     raise ValidationError(_("يجب تحديد المستخدم الذي قام بتسجيل الدرجة."))
-
-        super().clean()
+    

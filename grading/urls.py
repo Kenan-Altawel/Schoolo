@@ -6,6 +6,7 @@ from .views import *
 router = DefaultRouter()
 
 router.register(r'exams', ExamViewSet, basename='exam')
+router.register(r'grades', GradeViewSet, basename='grade') # تم إضافة هذا السطر
 
 urlpatterns = [
     path('', include(router.urls)),

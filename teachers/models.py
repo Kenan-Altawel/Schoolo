@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from academic.models import DayOfWeek
 from accounts.models import User, AutoCreateAndAutoUpdateTimeStampedModel
 
 class Teacher(AutoCreateAndAutoUpdateTimeStampedModel):
@@ -31,15 +32,6 @@ class Teacher(AutoCreateAndAutoUpdateTimeStampedModel):
     
 
 class TeacherAvailability(AutoCreateAndAutoUpdateTimeStampedModel):
-    DAY_CHOICES = [
-        (1, _('الاثنين')),
-        (2, _('الثلاثاء')),
-        (3, _('الأربعاء')),
-        (4, _('الخميس')),
-        (5, _('الجمعة')),
-        (6, _('السبت')),
-        (7, _('الأحد')),
-    ]
 
     teacher = models.ForeignKey(
         Teacher, 
@@ -47,11 +39,7 @@ class TeacherAvailability(AutoCreateAndAutoUpdateTimeStampedModel):
         related_name='availability',
         verbose_name=_("المعلم")
     )
-    day_of_week = models.IntegerField(
-        choices=DAY_CHOICES,
-        verbose_name=_("يوم الأسبوع"),
-        help_text=_("اليوم من الأسبوع الذي يكون فيه المعلم متاحًا بشكل عام.")
-    )
+    day_of_week = models.ForeignKey(DayOfWeek,on_delete=models.CASCADE,related_name='teacher_availability',verbose_name=_("يوم الأسبوع"))
 
     class Meta:
         verbose_name = _("توفر المعلم")
@@ -63,9 +51,7 @@ class TeacherAvailability(AutoCreateAndAutoUpdateTimeStampedModel):
 
     def __str__(self):
         return (
-            f"{self.teacher.user.get_full_name()} متاح يوم {self.get_day_of_week_display()}"
+            f"{self.teacher.user.get_full_name()} متاح يوم {self.day_of_week.name_ar}"
         )
 
-    def clean(self):
-        from django.core.exceptions import ValidationError
-        super().clean()
+    

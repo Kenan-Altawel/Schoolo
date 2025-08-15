@@ -65,6 +65,16 @@ class ClassScheduleSerializer(serializers.ModelSerializer):
         slug_field='name',
         read_only=True
     )
+    start_slot = serializers.SlugRelatedField(
+        source='time_slot',
+        slug_field='start_time',
+        read_only=True
+    )
+    end_slot = serializers.SlugRelatedField(
+        source='time_slot',
+        slug_field='end_time',
+        read_only=True
+    )
     def get_teacher_name(self, obj):
         if obj.teacher and obj.teacher.user:
             return obj.teacher.user.get_full_name()
@@ -75,11 +85,11 @@ class ClassScheduleSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'subject', 'subject_name', 'section', 'section_name',
             'teacher', 'teacher_name', 'academic_year', 'academic_year_name',
-            'academic_term', 'academic_term_name', 'day_of_week', 'day_of_week_display','time_slot', 'time_slot_display'
+            'academic_term', 'academic_term_name', 'day_of_week', 'day_of_week_display','time_slot', 'time_slot_display','start_slot','end_slot'
         ]
         read_only_fields = [
             'subject_name', 'section_name', 'teacher_name',
-            'academic_year_name', 'academic_term_name', 'day_of_week_display'
+            'academic_year_name', 'academic_term_name', 'day_of_week_display','start_slot','end_slot'
         ]
 
     def validate(self, data):

@@ -7,15 +7,12 @@ from subject.models import TeacherSubject
 from django.db import transaction
 
 class TeacherAvailabilitySerializer(serializers.ModelSerializer):
-    day_name = serializers.SerializerMethodField()
+    day_name = serializers.CharField(source='day_of_week.name_ar', read_only=True)
 
     class Meta:
         model = TeacherAvailability
-        fields = [ 'day_name']
+        fields = ['day_of_week', 'day_name']
 
-    def get_day_name(self, obj):
-        return obj.get_day_of_week_display()
-   
 class TeacherProfileUpdateSerializer(serializers.ModelSerializer):
     address = serializers.CharField(
         required=False,

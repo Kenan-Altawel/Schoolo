@@ -14,6 +14,7 @@ from accounts.models import User
 from rest_framework import permissions
 from django.core.exceptions import ValidationError
 from accounts.permissions import *
+from django.db.models import Q
 
 
 # استيراد الـ Serializers
@@ -167,12 +168,12 @@ class ClassScheduleListView(generics.ListAPIView):
         # إذا لم يكن المستخدم موثقاً، لا تُرجع شيئاً.
         # على الرغم من وجود permission_classes، هذه خطوة أمان إضافية.
         if not user.is_authenticated:
-            return ClassSchedule.objects.none()
+            queryset= ClassSchedule.objects.none()
 
         # منطق المسؤول والمشرف:
         # إذا كان المستخدم مشرفاً عاماً، يمكنه رؤية جميع الحصص.
         if user.is_superuser or user.is_admin(): # افترضنا وجود دالة is_admin()
-            return queryset
+            queryset = queryset
 
         # منطق المعلم:
         # إذا كان المستخدم معلماً، يُرجع له الحصص التي يدرسها فقط.
@@ -181,9 +182,9 @@ class ClassScheduleListView(generics.ListAPIView):
             # يجب أن يكون لدى المستخدم كائن teacher مرتبط به
             try:
                 teacher_obj = Teacher.objects.filter(user=user).first()
-                return queryset.filter(teacher=teacher_obj)
+                queryset = queryset.filter(teacher=teacher_obj)
             except Teacher.DoesNotExist:
-                return ClassSchedule.objects.none()
+                queryset = ClassSchedule.objects.none()
 
         # منطق الطالب:
         # إذا كان المستخدم طالباً، يُرجع له الحصص الخاصة بشعبته الحالية.
@@ -193,11 +194,31 @@ class ClassScheduleListView(generics.ListAPIView):
             try:
                 student_obj = Student.objects.filter(user=user).first()
                 if student_obj.section:
-                    return queryset.filter(section=student_obj.section)
+                    queryset= queryset.filter(section=student_obj.section)
             except Student.DoesNotExist:
-                return ClassSchedule.objects.none()
+                queryset= ClassSchedule.objects.none()
 
-        # لأي دور آخر أو مستخدم لم يتم تحديده، لا تُرجع شيئاً.
-        return ClassSchedule.objects.none()
+        teacher_id = self.request.query_params.get('teacher_id')
+        subject_id = self.request.query_params.get('subject_id')
+        day_of_week = self.request.query_params.get('day_of_week')
+        section_id = self.request.query_params.get('section_id')
+        
+        # تطبيق الفلترة على الـ queryset
+        if teacher_id:
+            queryset = queryset.filter(teacher_id=teacher_id)
 
+        if subject_id:
+            queryset = queryset.filter(subject_id=subject_id)
 
+        if day_of_week:
+            try:
+                day_of_week_int = int(day_of_week)
+                queryset = queryset.filter(day_of_week=day_of_week_int)
+            except (ValueError, TypeError):
+                pass
+        
+        if section_id:
+            queryset = queryset.filter(section_id=section_id)
+            
+        return queryset.distinct()
+        
