@@ -22,7 +22,7 @@ class SubjectContentViewSet(viewsets.ModelViewSet):
         user = self.request.user
 
         if not user.is_authenticated:
-            return SubjectContent.objects.none()
+            queryset= SubjectContent.objects.none()
 
         user_specific_filter = Q()
 
@@ -47,7 +47,7 @@ class SubjectContentViewSet(viewsets.ModelViewSet):
                     teacher_instance_for_filter = Teacher.objects.get(user__id=teacher_id_param)
                     queryset = queryset.filter(teacher=teacher_instance_for_filter)
                 except Teacher.DoesNotExist:
-                    return SubjectContent.objects.none() # أو يمكنك تجاهل الفلتر
+                    queryset= SubjectContent.objects.none() # أو يمكنك تجاهل الفلتر
             
             return self._apply_common_filters(queryset, current_academic_year, current_academic_term).distinct()
 
@@ -57,8 +57,7 @@ class SubjectContentViewSet(viewsets.ModelViewSet):
                 teacher_instance = Teacher.objects.get(user=user)
                 queryset = queryset.filter(teacher=teacher_instance) 
             except Teacher.DoesNotExist:
-                return SubjectContent.objects.none()
-            
+                queryset= SubjectContent.objects.none()
             return self._apply_common_filters(queryset, current_academic_year, current_academic_term).distinct()
 
 

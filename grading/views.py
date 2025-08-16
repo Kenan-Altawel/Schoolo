@@ -30,7 +30,7 @@ class ExamViewSet(viewsets.ModelViewSet):
             queryset = Exam.objects.all()
         elif user.is_teacher():
             try:
-                teacher = user.teacher_profile 
+                teacher = Teacher.objects.get(user=user)
                 queryset = Exam.objects.filter(teacher=teacher)
             except Teacher.DoesNotExist:
                 queryset = Exam.objects.none()
@@ -96,7 +96,7 @@ class ExamViewSet(viewsets.ModelViewSet):
                     "detail": _("المعلمون مسموح لهم فقط بإنشاء اختبارات من نوع quiz أو assignment.")
                 })
 
-        serializer.save(teacher=self.request.user.teacher_profile)
+        serializer.save()
 
     def perform_update(self, serializer):
         """

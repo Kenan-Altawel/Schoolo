@@ -1,11 +1,11 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import AttendanceViewSet, AttendanceSummaryView
+from .views import *
 
 router = DefaultRouter()
 router.register(r'attendance', AttendanceViewSet, basename='attendance')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('attendance/summary/', AttendanceSummaryView.as_view(), name='attendance-summary'),
+    path('attendance/record/<int:section_id>/<str:date_str>/', AttendanceBulkRecordView.as_view(), name='attendance-bulk-record'),
 ]
