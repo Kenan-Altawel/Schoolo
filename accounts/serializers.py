@@ -555,7 +555,7 @@ class StudentSerializer(serializers.ModelSerializer):
         fields = [
             'enrollment_number', 'father_name', 'gender', 'address',
             'parent_phone', 'student_status', 'register_status',
-            'date_of_birth', 'image', 'section_name', 'class_name'
+            'date_of_birth', 'image',  'section','section_name', 'student_class','class_name',
         ]
 from teachers.serializers import TeacherAvailabilitySerializer
 class TeacherSerializer(serializers.ModelSerializer):

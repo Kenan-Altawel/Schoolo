@@ -44,7 +44,39 @@ class SectionSubjectsListView(generics.ListAPIView):
         ).distinct() 
 
         return queryset
+    # def get_queryset(self):
+    #     user = self.request.user
+    #     class_id = self.kwargs['class_id']
+    #     section_id = self.kwargs['section_id']
 
+    #     # 1. التحقق من وجود الصف والشعبة
+    #     # هذا يضمن أن IDs الموجودة في الـ URL صحيحة
+    #     school_class = get_object_or_404(Class, id=class_id)
+    #     section = get_object_or_404(Section, id=section_id, class_obj=school_class)
+
+    #     # 2. منطق الوصول للمدير/المشرف العام
+    #     if user.is_superuser or user.is_admin:
+    #         queryset = Subject.objects.filter(
+    #             Q(class_obj=school_class) | Q(section=section)
+    #         ).distinct()
+    #         return queryset
+        
+    #     elif user.is_student:
+    #         try:
+    #             student = user.student 
+    #             student_section = student.section
+
+    #             if student.section.id != section.id:
+    #                 return Subject.objects.none()
+                
+    #             queryset = Subject.objects.filter(section=student.section)
+    #             return queryset
+            
+    #         except Student.DoesNotExist:
+    #             return Subject.objects.none()
+        
+    #     return Subject.objects.none()
+    
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['class_id'] = self.kwargs['class_id']

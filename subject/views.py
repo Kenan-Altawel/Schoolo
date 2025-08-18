@@ -89,6 +89,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
                     stream_type__in=['General', None]
                 )
 
+                
                 # فلترة المواد الخاصة بمسار الطالب إذا كان للشعبة مسار محدد
                 specialized_subjects = self.queryset.none()
                 if student_section.stream_type:
@@ -107,8 +108,19 @@ class SubjectViewSet(viewsets.ModelViewSet):
         return Subject.objects.none()
 
     def perform_create(self, serializer):
+        try:
+            current_academic_year = AcademicYear.objects.get(is_current=True)
+            current_academic_term = AcademicTerm.objects.get(
+                is_current=True, 
+                academic_year=current_academic_year
+            )
+        except (AcademicYear.DoesNotExist, AcademicTerm.DoesNotExist):
+            raise NotFound("لا يوجد عام أو فصل دراسي حالي محدد.")
+        
         with transaction.atomic():
-            subject_instance = serializer.save()
+            subject_instance = serializer.save(
+            academic_year=current_academic_year,
+            academic_term=current_academic_term)
             self._create_section_subject_requirements(subject_instance)
 
     def perform_update(self, serializer):
@@ -200,6 +212,7 @@ class SubjectIconListView(generics.ListAPIView):
 
 
 class TeacherTaughtSectionsView(ListAPIView):
+
     """
     عرض قائمة بجميع الشعب التي يدرسها الأستاذ الحالي، مع مراعاة العام والفصل الدراسي الحالي.
     """
@@ -240,3 +253,52 @@ class TeacherTaughtSectionsView(ListAPIView):
         }
         
         return Response(response_data)
+    
+
+class SectionSubjectsListView(ListAPIView):
+    serializer_class = SectionSubjectRequirementSerializer
+    permission_classes = [IsAuthenticated] # التأكد أن المستخدم موثق
+
+    def get_queryset(self):
+        # الحصول على ID الشعبة من الـ URL
+        section_id = self.kwargs.get('section_id')
+        user = self.request.user
+
+        # إذا كان المستخدم مسؤول أو مشرف
+        if user.is_superuser or user.is_admin():
+            return SectionSubjectRequirement.objects.filter(section_id=section_id)
+
+        # إذا كان المستخدم طالبا
+        if user.is_student():
+            try:
+                # التحقق من أن الطالب ينتمي للشعبة المطلوبة
+                if user.student.section_id == int(section_id):
+                    # إرجاع المواد الخاصة بشعبة الطالب
+                    return SectionSubjectRequirement.objects.filter(section=user.student.section)
+                # إذا حاول الطالب الوصول لشعبة أخرى، يتم رفض الإذن
+                else:
+                    raise PermissionDenied("ليس لديك صلاحية الوصول لهذه الشعبة.")
+            except Student.DoesNotExist:
+                raise NotFound("الطالب غير مرتبط بشعبة.")
+
+        # إذا كان المستخدم معلما
+        if user.is_teacher():
+            try:
+                teacher_instance = user.teacher_profile
+                # العثور على المواد التي يدرسها المعلم في هذه الشعبة
+                taught_subjects = Subject.objects.filter(
+                    taught_by_teachers__teacher=teacher_instance,
+                    subject_requirements__section_id=section_id
+                ).distinct()
+                
+                # استخدام IDs المواد التي يدرسها المعلم لفلترة SectionSubjectRequirement
+                return SectionSubjectRequirement.objects.filter(
+                    section_id=section_id, 
+                    subject__in=taught_subjects.values_list('id', flat=True)
+                )
+
+            except Teacher.DoesNotExist:
+                raise NotFound("المعلم غير موجود.")
+
+        # إذا كان المستخدم لا يملك أي من الصلاحيات السابقة
+        raise PermissionDenied("ليس لديك صلاحية الوصول.")

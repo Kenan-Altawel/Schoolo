@@ -166,6 +166,19 @@ class TeacherSubjectAssignmentSerializer(serializers.Serializer):
         return value
 
 
+class SubjectSerializer3(serializers.ModelSerializer):
+    class Meta:
+        model = Subject
+        fields = '__all__'
+
+class SectionSubjectRequirementSerializer(serializers.ModelSerializer):
+    subject = SubjectSerializer()
+
+    class Meta:
+        model = SectionSubjectRequirement
+        fields = ['id', 'weekly_lessons_required', 'subject']
+
+
 class SubjectSerializer2(serializers.ModelSerializer):
     class Meta:
         model = Subject

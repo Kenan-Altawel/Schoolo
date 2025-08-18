@@ -7,6 +7,7 @@ from django.db.models import Q , Avg
 from rest_framework import permissions # يجب استيراد permissions
 from django.utils.translation import gettext_lazy as _
 from accounts.permissions import *
+from grading.grade_calculator import GradeCalculator
 from .serializers import *
 from .models import *
 from accounts.models import User 
@@ -16,6 +17,9 @@ from classes.models import Section
 from accounts.permissions import CustomPermission
 from rest_framework.decorators import action
 from django.utils import timezone
+from rest_framework.views import APIView
+from django.db import transaction
+
 
 class ExamViewSet(viewsets.ModelViewSet):
     serializer_class = ExamSerializer
@@ -75,7 +79,15 @@ class ExamViewSet(viewsets.ModelViewSet):
         if target_class_id:
             query_params_filters &= Q(target_class_id=target_class_id)
         if target_section_id:
-            query_params_filters &= Q(target_section_id=target_section_id)
+            try:
+                section = Section.objects.get(id=target_section_id)
+                query_params_filters &= (
+                    Q(target_section_id=target_section_id) |
+                    (Q(target_class_id=section.class_obj_id) & Q(target_section__isnull=True) & Q(stream_type__isnull=True)) |
+                    (Q(target_class_id=section.class_obj_id) & Q(stream_type=section.stream_type) & Q(target_section__isnull=True))
+                )
+            except Section.DoesNotExist:
+                pass
         if stream_type:
             query_params_filters &= Q(target_section__stream_type=stream_type)
         if is_conducted is not None: 
@@ -246,108 +258,187 @@ class GradeViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         instance.delete()
 
-    @action(detail=False, methods=['get'])
-    def calculate_student_averages(self, request):
-        student_id = request.query_params.get('student_id')
-        academic_year_id = request.query_params.get('academic_year_id')
-        academic_term_id = request.query_params.get('academic_term_id')
+    
 
-        if not student_id:
+class GradeBulkRecordView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, exam_id, section_id, *args, **kwargs):
+        """
+        إضافة علامات بشكل مجمع لطلاب شعبة معينة في اختبار محدد.
+        البيانات المطلوبة في الـ Body:
+        {
+          "grades": [
+            {"student_id": 101, "score": 95.5},
+            {"student_id": 102, "score": 88.0},
+            ...
+          ]
+        }
+        """
+        user = request.user
+        grades_data = request.data.get('grades', [])
+
+        if not user.is_teacher():
             return Response(
-                {"detail": _("يجب توفير رقم تعريف الطالب.")},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "يجب أن تكون معلماً لإضافة العلامات."},
+                status=status.HTTP_403_FORBIDDEN
             )
 
         try:
-            student = Student.objects.get(id=student_id)
-        except Student.DoesNotExist:
+            exam = Exam.objects.get(id=exam_id)
+            section = Section.objects.get(id=section_id)
+        except Exam.DoesNotExist:
             return Response(
-                {"detail": _("الطالب غير موجود.")},
+                {"error": "الاختبار غير موجود."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Section.DoesNotExist:
+            return Response(
+                {"error": "الشعبة غير موجودة."},
                 status=status.HTTP_404_NOT_FOUND
             )
 
+        if exam.teacher != user.teacher_profile:
+            return Response(
+                {"error": "ليس لديك صلاحية لإضافة علامات لهذا الاختبار."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if not exam.is_conducted:
+            return Response(
+                {"error": "لا يمكن إضافة علامات لاختبار لم يتم إجراؤه بعد."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # تحقق من أن الاختبار يستهدف الشعبة بشكل مباشر أو غير مباشر (عن طريق الصف أو نوع التخصص)
+        is_target_section_match = (
+            (exam.target_section and exam.target_section == section) or
+            (exam.target_section is None and exam.target_class and exam.target_class == section.class_obj and exam.stream_type is None) or
+            (exam.target_section is None and exam.target_class and exam.target_class == section.class_obj and exam.stream_type and exam.stream_type == section.stream_type)
+        )
+
+        if not is_target_section_match:
+            return Response(
+                {"error": "الشعبة لا تتوافق مع الأهداف المحددة لهذا الاختبار."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # التأكد من وجود بيانات للعلامات
+        if not grades_data:
+            return Response(
+                {"error": "يجب توفير قائمة العلامات ('grades')."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        success_count = 0
+        errors = []
+
+        with transaction.atomic():
+            for grade_item in grades_data:
+                student_id = grade_item.get('student_id')
+                score = grade_item.get('score')
+                
+                if student_id is None or score is None:
+                    errors.append({"error": "يجب توفير معرف الطالب والدرجة لكل سجل.", "record": grade_item})
+                    continue
+
+                try:
+                    student_obj = Student.objects.get(pk=student_id)
+                    
+                    if student_obj.section != section:
+                        errors.append({"error": f"الطالب بالمعرف {student_id} لا ينتمي إلى هذه الشعبة.", "record": grade_item})
+                        continue
+
+                    if score > exam.total_marks:
+                        errors.append({"error": f"درجة الطالب ({score}) لا يمكن أن تتجاوز الدرجة الكلية ({exam.total_marks}).", "record": grade_item})
+                        continue
+                    if score < 0:
+                        errors.append({"error": f"درجة الطالب ({score}) لا يمكن أن تكون سالبة.", "record": grade_item})
+                        continue
+
+                    grade_record, created = Grade.objects.update_or_create(
+                        student=student_obj,
+                        exam=exam,
+                        defaults={
+                            'score': score,
+                            'graded_at': timezone.now()
+                        }
+                    )
+                    success_count += 1
+                except Student.DoesNotExist:
+                    errors.append({"error": f"الطالب بالمعرف {student_id} غير موجود.", "record": grade_item})
+                except Exception as e:
+                    errors.append({"error": str(e), "record": grade_item})
+
+        if errors:
+            return Response({
+                "message": f"تم تسجيل {success_count} علامة بنجاح. توجد أخطاء في {len(errors)} سجل.",
+                "errors": errors
+            }, status=status.HTTP_207_MULTI_STATUS)
+
+        return Response(
+            {"message": "تم إضافة جميع العلامات بنجاح.", "count": success_count},
+            status=status.HTTP_201_CREATED
+        )
+    
+
+class BaseAverageView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        student_id = request.query_params.get('student_id')
+        academic_year_id = request.query_params.get('academic_year_id')
+        academic_term_id = request.query_params.get('academic_term_id')
+        subject_id = request.query_params.get('subject_id')
+
+        # التحقق من المستخدم وتعيين student_id
+        if user.is_student():
+            try:
+                student_id = user.student.id
+            except Student.DoesNotExist:
+                return Response({"detail": _("الطالب غير موجود.")}, status=status.HTTP_404_NOT_FOUND)
+        
+        if not student_id or not academic_year_id or not academic_term_id or not subject_id:
+            return Response(
+                {"detail": _("يجب توفير student_id, academic_year_id, academic_term_id, و subject_id.")},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         # التحقق من الصلاحيات
-        user = self.request.user
+        try:
+            student = Student.objects.get(id=student_id)
+        except Student.DoesNotExist:
+            return Response({"detail": _("الطالب غير موجود.")}, status=status.HTTP_404_NOT_FOUND)
+
         if user.is_teacher() and student.section.teacher != user.teacher_profile:
-            return Response(
-                {"detail": _("ليس لديك الصلاحية لعرض معدلات هذا الطالب.")},
-                status=status.HTTP_403_FORBIDDEN
-            )
+            return Response({"detail": _("ليس لديك الصلاحية لعرض معدلات هذا الطالب.")}, status=status.HTTP_403_FORBIDDEN)
+        
         if user.is_student() and student.user != user:
-            return Response(
-                {"detail": _("ليس لديك الصلاحية لعرض معدلات طالب آخر.")},
-                status=status.HTTP_403_FORBIDDEN
-            )
+            return Response({"detail": _("ليس لديك الصلاحية لعرض معدلات طالب آخر.")}, status=status.HTTP_403_FORBIDDEN)
 
-        # فلترة العلامات بناءً على الطالب والسنة والفصل (إذا تم توفيرهما)
-        grades_queryset = Grade.objects.filter(student=student)
-        
-        if academic_year_id:
-            grades_queryset = grades_queryset.filter(exam__academic_year_id=academic_year_id)
-        
-        if academic_term_id:
-            grades_queryset = grades_queryset.filter(exam__academic_term_id=academic_term_id)
+        return self.calculate_and_respond(student_id, academic_year_id, academic_term_id, subject_id)
 
-        # حساب معدلات كل نوع امتحان
-        averages = grades_queryset.values('exam__exam_type').annotate(average_score=Avg('score'))
+class ActivitiesAverageView(BaseAverageView):
+    def calculate_and_respond(self, student_id, academic_year_id, academic_term_id, subject_id):
+        calculator = GradeCalculator()
+        average = calculator.calculate_activities_average(student_id, academic_year_id, academic_term_id, subject_id)
+        return Response({"activities_average": average})
 
-        # تجهيز البيانات للرد
-        averages_by_type = {item['exam__exam_type']: item['average_score'] for item in averages}
-        
-        midterm_average = averages_by_type.get('midterm', None)
-        final_average = averages_by_type.get('final', None)
-        quiz_average = averages_by_type.get('quiz', None)
-        assignment_average = averages_by_type.get('assignment', None)
+class MidtermAverageView(BaseAverageView):
+    def calculate_and_respond(self, student_id, academic_year_id, academic_term_id, subject_id):
+        calculator = GradeCalculator()
+        average = calculator.calculate_midterm_average(student_id, academic_year_id, academic_term_id, subject_id)
+        return Response({"midterm_average": average})
 
-        term_average = None
-        if midterm_average is not None and final_average is not None:
-            term_average = (midterm_average + final_average) / 2
-        
-        activities_average = None
-        activity_scores = [score for score in [quiz_average, assignment_average] if score is not None]
-        if activity_scores:
-            activities_average = sum(activity_scores) / len(activity_scores)
+class FinalScoreView(BaseAverageView):
+    def calculate_and_respond(self, student_id, academic_year_id, academic_term_id, subject_id):
+        calculator = GradeCalculator()
+        score = calculator.calculate_final_score(student_id, academic_year_id, academic_term_id, subject_id)
+        return Response({"final_score": score})
 
-        response_data = {
-            "student_id": student.id,
-            "student_name": student.user.get_full_name(),
-            "academic_year_id": academic_year_id,
-            "academic_term_id": academic_term_id,
-            "midterm_average": round(midterm_average, 2) if midterm_average is not None else None,
-            "final_average": round(final_average, 2) if final_average is not None else None,
-            "quiz_average": round(quiz_average, 2) if quiz_average is not None else None,
-            "assignment_average": round(assignment_average, 2) if assignment_average is not None else None,
-            "activities_average": round(activities_average, 2) if activities_average is not None else None,
-            "term_average": round(term_average, 2) if term_average is not None else None,
-        }
-        
-        # حساب معدل السنة الدراسية إذا لم يتم تحديد الفصل
-        if academic_year_id and not academic_term_id:
-            # يجب أن يكون لديك منطق للحصول على فصلي السنة الدراسية
-            # يمكن افتراض وجود فصلين لكل سنة دراسية
-            term_1_grades = Grade.objects.filter(
-                student=student, 
-                exam__academic_year_id=academic_year_id,
-                exam__academic_term_id=1  # مثال: رقم تعريف الفصل الأول
-            )
-            term_2_grades = Grade.objects.filter(
-                student=student, 
-                exam__academic_year_id=academic_year_id,
-                exam__academic_term_id=2  # مثال: رقم تعريف الفصل الثاني
-            )
-
-            term_1_midterm = term_1_grades.filter(exam__exam_type='midterm').aggregate(Avg('score'))['score__avg']
-            term_1_final = term_1_grades.filter(exam__exam_type='final').aggregate(Avg('score'))['score__avg']
-            term_1_avg = (term_1_midterm + term_1_final) / 2 if term_1_midterm and term_1_final else None
-
-            term_2_midterm = term_2_grades.filter(exam__exam_type='midterm').aggregate(Avg('score'))['score__avg']
-            term_2_final = term_2_grades.filter(exam__exam_type='final').aggregate(Avg('score'))['score__avg']
-            term_2_avg = (term_2_midterm + term_2_final) / 2 if term_2_midterm and term_2_final else None
-
-            yearly_average = None
-            if term_1_avg is not None and term_2_avg is not None:
-                yearly_average = (term_1_avg + term_2_avg) / 2
-            
-            response_data['yearly_average'] = round(yearly_average, 2) if yearly_average is not None else None
-
-        return Response(response_data, status=status.HTTP_200_OK)
+class TotalTermAverageView(BaseAverageView):
+    def calculate_and_respond(self, student_id, academic_year_id, academic_term_id, subject_id):
+        calculator = GradeCalculator()
+        total_average = calculator.calculate_total_term_average(student_id, academic_year_id, academic_term_id, subject_id)
+        return Response({"total_term_average": total_average})

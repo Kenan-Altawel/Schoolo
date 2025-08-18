@@ -11,4 +11,9 @@ router.register(r'grades', GradeViewSet, basename='grade') # تم إضافة ه�
 urlpatterns = [
     path('', include(router.urls)),
     path('exams/<int:pk>/conduct/', ExamConductView.as_view(), name='exam-conduct'),
+    path('grades/add_section_grades/<int:exam_id>/<int:section_id>/', GradeBulkRecordView.as_view(), name='add-section-grades'),
+    path('grades/averages/activities/', ActivitiesAverageView.as_view(), name='activities-average'),
+    path('grades/averages/midterm/', MidtermAverageView.as_view(), name='midterm-average'),
+    path('grades/averages/final/', FinalScoreView.as_view(), name='final-score'),
+    path('grades/averages/total_term/', TotalTermAverageView.as_view(), name='total-term-average'),
 ]

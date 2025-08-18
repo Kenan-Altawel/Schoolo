@@ -108,9 +108,6 @@ class IsManagerOrTeacher(permissions.BasePermission):
         user = request.user
         return user.is_authenticated and (user.is_superuser or user.is_admin() or user.is_teacher())
 
-class StudentListAPIView(generics.ListAPIView):
-    serializer_class = StudentListSerializer
-    permission_classes = [IsManagerOrTeacher]
 
 class StudentListAPIView(generics.ListAPIView):
     serializer_class = StudentListSerializer
@@ -131,8 +128,7 @@ class StudentListAPIView(generics.ListAPIView):
             if section_id_param:
                 queryset = queryset.filter(section_id=section_id_param)
             elif class_id_param:
-                queryset = queryset.filter(student_class_id=class_id_param)
-            
+                queryset = queryset.filter(student__class_id=class_id_param)            
         elif user.is_teacher():
             try:
                 teacher_instance = Teacher.objects.get(user=user)

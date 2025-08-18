@@ -66,3 +66,12 @@ class GradeSerializer(serializers.ModelSerializer):
                     })
             
             return data
+
+class BulkGradeItemSerializer(serializers.Serializer):
+    student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
+    score = serializers.DecimalField(max_digits=5, decimal_places=2)
+
+class BulkGradeSerializer(serializers.Serializer):
+    grades = serializers.ListField(
+        child=BulkGradeItemSerializer()
+    )

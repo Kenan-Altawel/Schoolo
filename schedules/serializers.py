@@ -10,12 +10,13 @@ from schedules.models import ClassSchedule, ProposedClassSchedule # تأكد م�
 class SubjectWithLessonCountSerializer(serializers.ModelSerializer):
     added_lessons = serializers.SerializerMethodField()
     total_lessons_required = serializers.SerializerMethodField()
-
+    icon_url = serializers.SerializerMethodField()
     class Meta:
         model = Subject
-        fields = [
-            'id', 'name', 'description', 'is_active',
-            'default_weekly_lessons', 'added_lessons', 'total_lessons_required'
+        fields = ['id', 'class_obj', 'section', 'stream_type', 'name',
+            'description', 'is_active', 'pdf_file', 'icon','icon_url',
+            'default_weekly_lessons', 'academic_year', 'academic_term',
+            'added_lessons', 'total_lessons_required'
         ]
 
     def get_added_lessons(self, obj):
@@ -45,6 +46,14 @@ class SubjectWithLessonCountSerializer(serializers.ModelSerializer):
                 # إذا لم يتم تحديد متطلب خاص للشعبة، نعود للقيمة الافتراضية في المادة
                 return obj.default_weekly_lessons
         return obj.default_weekly_lessons 
+    def get_icon_url(self, obj):
+        """
+        هذه الدالة تقوم بإرجاع URL الأيقونة المرتبطة بالمادة.
+        """
+        if obj.icon and obj.icon.icon_file:
+            # استخدام .url للحصول على المسار الكامل للملف
+            return self.context['request'].build_absolute_uri(obj.icon.icon_file.url)
+        return None
 
 
 # Serializer لإنشاء وتعديل وعرض ClassSchedule
