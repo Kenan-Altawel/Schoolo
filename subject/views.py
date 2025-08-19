@@ -10,7 +10,7 @@ from schedules.models import ClassSchedule
 from .models import Subject, SectionSubjectRequirement
 from .serializers import *
 from classes.models import Class, Section
-from classes.serializers import TaughtSectionSerializer
+from classes.serializers import TaughtClassSerializer, TaughtSectionSerializer
 from django.db import transaction
 from django.db.models import Q
 from accounts.permissions import *
@@ -210,19 +210,32 @@ class SubjectIconListView(generics.ListAPIView):
     permission_classes = [IsAdminOrSuperuser]
     
 
-
-class TeacherTaughtSectionsView(ListAPIView):
-
+class TeacherTaughtItemsView(ListAPIView):
     """
-    عرض قائمة بجميع الشعب التي يدرسها الأستاذ الحالي، مع مراعاة العام والفصل الدراسي الحالي.
+    عرض قائمة بالعناصر (شعب أو صفوف) التي يدرسها المعلم، مع إمكانية الفلترة على المادة.
     """
-    serializer_class = TaughtSectionSerializer
     permission_classes = [IsTeacher]
+
+    def get_serializer_class(self):
+        # يحدد السيريالايزر بناءً على نوع العنصر المطلوب في الـURL
+        item_type = self.kwargs.get('item_type')
+        if item_type == 'sections':
+            return TaughtSectionSerializer
+        elif item_type == 'classes':
+            return TaughtClassSerializer
+        else:
+            raise NotFound("نوع العنصر غير صالح. استخدم 'sections' أو 'classes'.")
 
     def get_queryset(self):
         user = self.request.user
-        teacher = Teacher.objects.get(user=user)
+        
+        # 1. التحقق من وجود المعلم
+        try:
+            teacher_instance = user.teacher_profile  # أو user.teacher، حسب النموذج الخاص بك
+        except Teacher.DoesNotExist:
+            raise NotFound("المعلم غير موجود.")
 
+        # 2. الحصول على العام والفصل الدراسي الحالي
         try:
             current_academic_year = AcademicYear.objects.get(is_current=True)
             current_academic_term = AcademicTerm.objects.get(
@@ -232,66 +245,93 @@ class TeacherTaughtSectionsView(ListAPIView):
         except (AcademicYear.DoesNotExist, AcademicTerm.DoesNotExist):
             raise NotFound("لا يوجد عام أو فصل دراسي حالي محدد.")
         
-        sections_taught_ids = ClassSchedule.objects.filter(
-            teacher=teacher,
+        queryset_base = ClassSchedule.objects.filter(
+            teacher=teacher_instance,
             academic_year=current_academic_year,
             academic_term=current_academic_term
-        ).values_list('section_id', flat=True).distinct()
+        )
         
-        # 2. البحث عن كائنات الشعب (Section objects) باستخدام هذه المعرفات
-        queryset = Section.objects.filter(id__in=sections_taught_ids)
+        subject_id = self.request.query_params.get('subject_id')
+        if subject_id:
+            if not queryset_base.filter(subject_id=subject_id).exists():
+                return ClassSchedule.objects.none() 
+            queryset_base = queryset_base.filter(subject_id=subject_id)
+        
+        sections_taught_ids = queryset_base.values_list('section_id', flat=True).distinct()
+        
+        item_type = self.kwargs.get('item_type')
 
-        return queryset
+        if item_type == 'sections':
+            return Section.objects.filter(id__in=sections_taught_ids)
+        elif item_type == 'classes':
+            class_ids = Section.objects.filter(id__in=sections_taught_ids).values_list('class_obj_id', flat=True).distinct()
+            return Class.objects.filter(id__in=class_ids)
 
     def list(self, request, *args, **kwargs):
+        try:
+            teacher_instance = self.request.user.teacher_profile
+        except Teacher.DoesNotExist:
+           
+            teacher_instance = None 
+        
+    # 2. جلب الـqueryset، والذي قد يكون فارغًا
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
+        item_type = self.kwargs.get('item_type')
+        subject_id = self.request.query_params.get('subject_id')
 
+        # 3. التحقق من وجود نتائج بعد الفلترة على المادة
+        if subject_id and not queryset.exists():
+            # هذا الشرط سيُنفذ فقط إذا كانت هناك مادة محددة والـqueryset فارغ
+            return Response(
+                {"detail": "المعلم لا يدرس هذه المادة."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # 4. بناء سياق السيريالايزر وتمرير كائن المعلم
+        serializer_context = {
+            'request': request,
+            'teacher_instance': teacher_instance
+        }
+        
+        # 5. استخدام السياق عند تهيئة السيريالايزر
+        serializer = self.get_serializer(queryset, many=True, context=serializer_context)
+
+        # 6. بناء وإرجاع الاستجابة النهائية
         response_data = {
-            "sections you are teaching": queryset.count(),
-            "sections": serializer.data
+            f"{item_type} you are teaching": queryset.count(),
+            f"{item_type}": serializer.data
         }
         
         return Response(response_data)
-    
 
 class SectionSubjectsListView(ListAPIView):
     serializer_class = SectionSubjectRequirementSerializer
-    permission_classes = [IsAuthenticated] # التأكد أن المستخدم موثق
+    permission_classes = [IsAuthenticated] 
 
     def get_queryset(self):
-        # الحصول على ID الشعبة من الـ URL
         section_id = self.kwargs.get('section_id')
         user = self.request.user
 
-        # إذا كان المستخدم مسؤول أو مشرف
         if user.is_superuser or user.is_admin():
             return SectionSubjectRequirement.objects.filter(section_id=section_id)
 
-        # إذا كان المستخدم طالبا
         if user.is_student():
             try:
-                # التحقق من أن الطالب ينتمي للشعبة المطلوبة
                 if user.student.section_id == int(section_id):
-                    # إرجاع المواد الخاصة بشعبة الطالب
                     return SectionSubjectRequirement.objects.filter(section=user.student.section)
-                # إذا حاول الطالب الوصول لشعبة أخرى، يتم رفض الإذن
                 else:
                     raise PermissionDenied("ليس لديك صلاحية الوصول لهذه الشعبة.")
             except Student.DoesNotExist:
                 raise NotFound("الطالب غير مرتبط بشعبة.")
 
-        # إذا كان المستخدم معلما
         if user.is_teacher():
             try:
                 teacher_instance = user.teacher_profile
-                # العثور على المواد التي يدرسها المعلم في هذه الشعبة
                 taught_subjects = Subject.objects.filter(
                     taught_by_teachers__teacher=teacher_instance,
                     subject_requirements__section_id=section_id
                 ).distinct()
                 
-                # استخدام IDs المواد التي يدرسها المعلم لفلترة SectionSubjectRequirement
                 return SectionSubjectRequirement.objects.filter(
                     section_id=section_id, 
                     subject__in=taught_subjects.values_list('id', flat=True)
@@ -300,5 +340,4 @@ class SectionSubjectsListView(ListAPIView):
             except Teacher.DoesNotExist:
                 raise NotFound("المعلم غير موجود.")
 
-        # إذا كان المستخدم لا يملك أي من الصلاحيات السابقة
         raise PermissionDenied("ليس لديك صلاحية الوصول.")

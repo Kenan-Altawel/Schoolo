@@ -1,12 +1,14 @@
-from django.db.models import Avg
+from django.db.models import Avg, Sum
 from students.models import Student
 from .models import Grade
 from django.utils.translation import gettext_lazy as _
+from decimal import Decimal
 
 class GradeCalculator:
     """
     كلاس مسؤول عن حساب معدلات الطلاب
     """
+
     def _get_base_queryset(self, student_id, academic_year_id=None, academic_term_id=None, subject_id=None):
         """
         دالة مساعدة لإنشاء QuerySet الأساسي
@@ -20,31 +22,58 @@ class GradeCalculator:
             grades_queryset = grades_queryset.filter(exam__subject_id=subject_id)
         return grades_queryset
 
-    def calculate_activities_average(self, student_id, academic_year_id, academic_term_id, subject_id):
-        grades_queryset = self._get_base_queryset(student_id, academic_year_id, academic_term_id, subject_id)
-        activities_grades = grades_queryset.filter(exam__exam_type__in=['quiz', 'assignment'])
-        average_score = activities_grades.aggregate(Avg('score'))['score__avg']
-        return round(average_score, 2) if average_score is not None else None
+    def _normalized_percentage_for_queryset(self, grades_queryset):
+        """
+        يحسب نسبة مئوية موحّدة (0-100) باحتساب مجموع العلامات ÷ مجموع العلامات الكلية ثم * 100.
+        يعيد None إذا لا توجد بيانات أو المجموع الكلي يساوي صفرًا.
+        """
+        aggregates = grades_queryset.aggregate(
+            total_score=Sum('score'),
+            total_max=Sum('exam__total_marks'),
+        )
+        total_score = aggregates['total_score']
+        total_max = aggregates['total_max']
+        if total_score is None or total_max in (None, Decimal('0')):
+            return None
+        percent = (Decimal(total_score) / Decimal(total_max)) * Decimal('100')
+        return round(percent, 2)
 
-    def calculate_midterm_average(self, student_id, academic_year_id, academic_term_id, subject_id):
-        grades_queryset = self._get_base_queryset(student_id, academic_year_id, academic_term_id, subject_id)
-        midterm_grades = grades_queryset.filter(exam__exam_type='midterm')
-        average_score = midterm_grades.aggregate(Avg('score'))['score__avg']
-        return round(average_score, 2) if average_score is not None else None
+    def calculate_subject_average(self, student_id, subject_id, academic_year_id=None, academic_term_id=None):
+        """
+        يحسب المعدل كنسبة مئوية موحّدة لمادة محددة ضمن القيود (سنة/فصل اختياريين).
+        """
+        grades_queryset = self._get_base_queryset(
+            student_id,
+            academic_year_id=academic_year_id,
+            academic_term_id=academic_term_id,
+            subject_id=subject_id,
+        )
+        return self._normalized_percentage_for_queryset(grades_queryset)
 
-    def calculate_final_score(self, student_id, academic_year_id, academic_term_id, subject_id):
-        grades_queryset = self._get_base_queryset(student_id, academic_year_id, academic_term_id, subject_id)
-        final_grade = grades_queryset.filter(exam__exam_type='final').first()
-        return round(final_grade.score, 2) if final_grade else None
+    def calculate_overall_average(self, student_id, academic_year_id=None, academic_term_id=None):
+        """
+        يحسب المعدل العام عبر جميع المواد على شكل متوسط معدلات المواد (كنسب مئوية).
+        كل مادة تُحسب كنسبة مئوية موحّدة ضمن نفس القيود، ثم نأخذ متوسط هذه النسب.
+        """
+        base_qs = self._get_base_queryset(
+            student_id,
+            academic_year_id=academic_year_id,
+            academic_term_id=academic_term_id,
+        )
+        subject_ids = (
+            base_qs
+            .values_list('exam__subject_id', flat=True)
+            .distinct()
+        )
+        per_subject_avgs = []
+        for sid in subject_ids:
+            subject_qs = base_qs.filter(exam__subject_id=sid)
+            avg_percent = self._normalized_percentage_for_queryset(subject_qs)
+            if avg_percent is not None:
+                per_subject_avgs.append(avg_percent)
 
-    def calculate_total_term_average(self, student_id, academic_year_id, academic_term_id, subject_id):
-        activities_avg = self.calculate_activities_average(student_id, academic_year_id, academic_term_id, subject_id)
-        midterm_avg = self.calculate_midterm_average(student_id, academic_year_id, academic_term_id, subject_id)
-        final_score = self.calculate_final_score(student_id, academic_year_id, academic_term_id, subject_id)
+        if not per_subject_avgs:
+            return None
 
-        # حساب المعدل الإجمالي بناءً على الأوزان (20% أنشطة, 30% نصفي, 50% نهائي)
-        total_average = None
-        if activities_avg is not None and midterm_avg is not None and final_score is not None:
-            total_average = (activities_avg * 0.20) + (midterm_avg * 0.30) + (final_score * 0.50)
-        
-        return round(total_average, 2) if total_average is not None else None
+        overall = sum(per_subject_avgs) / len(per_subject_avgs)
+        return round(overall, 2)

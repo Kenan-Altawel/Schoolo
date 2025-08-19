@@ -25,7 +25,7 @@ class ExamSerializer(serializers.ModelSerializer):
             'target_class_name', 'target_section', 'target_section_name', 
             'is_conducted', 'stream_type', 'stream_type_display',
         ]
-        read_only_fields = ['is_conducted','stream_type_display']
+        read_only_fields = ['is_conducted','stream_type_display','academic_year','academic_term']
         
     def get_teacher_name(self, obj):
         if obj.teacher:

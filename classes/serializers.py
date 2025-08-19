@@ -61,18 +61,30 @@ class SectionSerializer(serializers.ModelSerializer):
     
 
 class TaughtClassSerializer(serializers.ModelSerializer):
+    sections_count = serializers.SerializerMethodField(read_only=True)
+
     """سيريالايزر بسيط لعرض اسم الفصل الدراسي فقط."""
     class Meta:
         model = Class
-        fields = ['id', 'name']
+        fields = ['id', 'name','description','sections_count']
 
+    def get_sections_count(self, obj):
+        teacher_instance = self.context.get('teacher_instance')
+        
+        # إذا كان المعلم موجودًا، قم بالعد بناءً على الشعب التي يدرسها
+        if teacher_instance:
+            return obj.sections.filter(class_schedules__teacher=teacher_instance).distinct().count()
+        
+        return 0
+    
 class TaughtSectionSerializer(serializers.ModelSerializer):
     """سيريالايزر لعرض الشعبة والصف المرتبط بها."""
     students_count = serializers.SerializerMethodField(read_only=True)
-    class_obj = TaughtClassSerializer(read_only=True)
+    class_name = serializers.CharField(source='class_obj.name', read_only=True)
+    class_id = serializers.IntegerField(source='class_obj.id', read_only=True)
     class Meta:
         model = Section
-        fields = ['id', 'name', 'class_obj','students_count']
+        fields = ['id', 'name','class_id', 'class_name','stream_type','capacity','students_count']
 
     def get_students_count(self, obj):
         """

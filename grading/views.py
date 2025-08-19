@@ -19,6 +19,7 @@ from rest_framework.decorators import action
 from django.utils import timezone
 from rest_framework.views import APIView
 from django.db import transaction
+from academic.models import AcademicYear, AcademicTerm
 
 
 class ExamViewSet(viewsets.ModelViewSet):
@@ -108,7 +109,16 @@ class ExamViewSet(viewsets.ModelViewSet):
                     "detail": _("المعلمون مسموح لهم فقط بإنشاء اختبارات من نوع quiz أو assignment.")
                 })
 
-        serializer.save()
+        # ضبط العام والفصل الحاليين تلقائيًا عند إنشاء الامتحان
+        try:
+            current_year = AcademicYear.objects.get(is_current=True)
+            current_term = AcademicTerm.objects.get(is_current=True, academic_year=current_year)
+        except (AcademicYear.DoesNotExist, AcademicTerm.DoesNotExist):
+            raise ValidationError({
+                "detail": _("لا يوجد عام أو فصل دراسي حالي. لا يمكن إنشاء الامتحان بدون تحديد عام وفصل حاليين.")
+            })
+
+        serializer.save(academic_year=current_year, academic_term=current_term)
 
     def perform_update(self, serializer):
         """
@@ -382,63 +392,108 @@ class GradeBulkRecordView(APIView):
         )
     
 
-class BaseAverageView(APIView):
+class SubjectAverageView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        student_id = request.query_params.get('student_id')
+        subject_id = request.query_params.get('subject_id')
+        academic_year_id = request.query_params.get('academic_year_id')
+        academic_term_id = request.query_params.get('academic_term_id')
+
+        # الطالب لا يُسمح له بتحديد student_id؛ نستخدم معرفه الذاتي
+        if user.is_student():
+            try:
+                student_id = user.student.pk
+            except Student.DoesNotExist:
+                return Response({"detail": _("الطالب غير موجود.")}, status=status.HTTP_404_NOT_FOUND)
+
+        if not subject_id:
+            return Response({"detail": _("يجب توفير subject_id.")}, status=status.HTTP_400_BAD_REQUEST)
+        if not student_id:
+            return Response({"detail": _("يجب توفير student_id (لغير الطلاب).")}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not academic_year_id and not academic_term_id:
+            try:
+                current_year = AcademicYear.objects.get(is_current=True)
+                current_term = AcademicTerm.objects.get(is_current=True, academic_year=current_year)
+            except (AcademicYear.DoesNotExist, AcademicTerm.DoesNotExist):
+                return Response({"detail": _("لا يوجد عام أو فصل دراسي حالي.")}, status=status.HTTP_400_BAD_REQUEST)
+            academic_year_id = current_year.pk
+            academic_term_id = current_term.pk
+        elif academic_year_id and academic_term_id:
+            try:
+                term_obj = AcademicTerm.objects.get(pk=academic_term_id)
+            except AcademicTerm.DoesNotExist:
+                return Response({"detail": _("الفصل الدراسي غير موجود.")}, status=status.HTTP_404_NOT_FOUND)
+            if str(term_obj.academic_year_id) != str(academic_year_id):
+                return Response({"detail": _("الفصل المحدد لا ينتمي إلى العام الدراسي المحدد.")}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            student = Student.objects.get(pk=student_id)
+        except Student.DoesNotExist:
+            return Response({"detail": _("الطالب غير موجود.")}, status=status.HTTP_404_NOT_FOUND)
+
+
+        calculator = GradeCalculator()
+        avg = calculator.calculate_subject_average(
+            student_id=student_id,
+            subject_id=subject_id,
+            academic_year_id=academic_year_id,
+            academic_term_id=academic_term_id,
+        )
+        return Response({"subject_average": avg})
+
+class OverallAverageView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
         user = request.user
         student_id = request.query_params.get('student_id')
         academic_year_id = request.query_params.get('academic_year_id')
         academic_term_id = request.query_params.get('academic_term_id')
-        subject_id = request.query_params.get('subject_id')
 
-        # التحقق من المستخدم وتعيين student_id
         if user.is_student():
             try:
-                student_id = user.student.id
+                student_id = user.student.pk
             except Student.DoesNotExist:
                 return Response({"detail": _("الطالب غير موجود.")}, status=status.HTTP_404_NOT_FOUND)
-        
-        if not student_id or not academic_year_id or not academic_term_id or not subject_id:
-            return Response(
-                {"detail": _("يجب توفير student_id, academic_year_id, academic_term_id, و subject_id.")},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if not student_id:
+            return Response({"detail": _("يجب توفير student_id (لغير الطلاب).")}, status=status.HTTP_400_BAD_REQUEST)
 
-        # التحقق من الصلاحيات
+        # المنطق الافتراضي كما في SubjectAverageView
+        if not academic_year_id and not academic_term_id:
+            try:
+                current_year = AcademicYear.objects.get(is_current=True)
+                current_term = AcademicTerm.objects.get(is_current=True, academic_year=current_year)
+            except (AcademicYear.DoesNotExist, AcademicTerm.DoesNotExist):
+                return Response({"detail": _("لا يوجد عام أو فصل دراسي حالي.")}, status=status.HTTP_400_BAD_REQUEST)
+            academic_year_id = current_year.pk
+            academic_term_id = current_term.pk
+        elif academic_year_id and academic_term_id:
+            try:
+                term_obj = AcademicTerm.objects.get(pk=academic_term_id)
+            except AcademicTerm.DoesNotExist:
+                return Response({"detail": _("الفصل الدراسي غير موجود.")}, status=status.HTTP_404_NOT_FOUND)
+            if str(term_obj.academic_year_id) != str(academic_year_id):
+                return Response({"detail": _("الفصل المحدد لا ينتمي إلى العام الدراسي المحدد.")}, status=status.HTTP_400_BAD_REQUEST)
+
+        # تحقق الصلاحيات
         try:
-            student = Student.objects.get(id=student_id)
+            student = Student.objects.get(pk=student_id)
         except Student.DoesNotExist:
             return Response({"detail": _("الطالب غير موجود.")}, status=status.HTTP_404_NOT_FOUND)
-
-        if user.is_teacher() and student.section.teacher != user.teacher_profile:
-            return Response({"detail": _("ليس لديك الصلاحية لعرض معدلات هذا الطالب.")}, status=status.HTTP_403_FORBIDDEN)
-        
+        if user.is_teacher():
+            if hasattr(student.section, 'teacher') and student.section.teacher != user.teacher_profile:
+                return Response({"detail": _("ليس لديك الصلاحية لعرض معدل هذا الطالب.")}, status=status.HTTP_403_FORBIDDEN)
         if user.is_student() and student.user != user:
             return Response({"detail": _("ليس لديك الصلاحية لعرض معدلات طالب آخر.")}, status=status.HTTP_403_FORBIDDEN)
 
-        return self.calculate_and_respond(student_id, academic_year_id, academic_term_id, subject_id)
-
-class ActivitiesAverageView(BaseAverageView):
-    def calculate_and_respond(self, student_id, academic_year_id, academic_term_id, subject_id):
         calculator = GradeCalculator()
-        average = calculator.calculate_activities_average(student_id, academic_year_id, academic_term_id, subject_id)
-        return Response({"activities_average": average})
-
-class MidtermAverageView(BaseAverageView):
-    def calculate_and_respond(self, student_id, academic_year_id, academic_term_id, subject_id):
-        calculator = GradeCalculator()
-        average = calculator.calculate_midterm_average(student_id, academic_year_id, academic_term_id, subject_id)
-        return Response({"midterm_average": average})
-
-class FinalScoreView(BaseAverageView):
-    def calculate_and_respond(self, student_id, academic_year_id, academic_term_id, subject_id):
-        calculator = GradeCalculator()
-        score = calculator.calculate_final_score(student_id, academic_year_id, academic_term_id, subject_id)
-        return Response({"final_score": score})
-
-class TotalTermAverageView(BaseAverageView):
-    def calculate_and_respond(self, student_id, academic_year_id, academic_term_id, subject_id):
-        calculator = GradeCalculator()
-        total_average = calculator.calculate_total_term_average(student_id, academic_year_id, academic_term_id, subject_id)
-        return Response({"total_term_average": total_average})
+        avg = calculator.calculate_overall_average(
+            student_id=student_id,
+            academic_year_id=academic_year_id,
+            academic_term_id=academic_term_id,
+        )
+        return Response({"overall_average": avg})
