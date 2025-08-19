@@ -15,13 +15,34 @@ from rest_framework import permissions
 from django.core.exceptions import ValidationError
 from accounts.permissions import *
 from django.db.models import Q
+from django.db import transaction
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
 
 # استيراد الـ Serializers
 from .serializers import (
     SubjectWithLessonCountSerializer,
     ClassScheduleSerializer,
+    SubjectRemainingLessonsSerializer,
 )
+
+
+def _calculate_remaining_lessons(section: Section, subject: Subject, academic_year: AcademicYear, academic_term: AcademicTerm) -> int:
+    """احسب عدد الحصص المتبقية المطلوبة لهذه المادة في هذه الشعبة ضمن العام والفصل الحاليين."""
+    try:
+        requirement = SectionSubjectRequirement.objects.get(section=section, subject=subject)
+        required = requirement.weekly_lessons_required
+    except SectionSubjectRequirement.DoesNotExist:
+        required = subject.default_weekly_lessons
+
+    added = ClassSchedule.objects.filter(
+        section=section,
+        subject=subject,
+        academic_year=academic_year,
+        academic_term=academic_term,
+    ).count()
+    remaining = required - added
+    return remaining if remaining > 0 else 0
 
 
 class SectionSubjectsListView(generics.ListAPIView):
@@ -84,6 +105,26 @@ class SectionSubjectsListView(generics.ListAPIView):
         return context
 
 
+class SectionSubjectsRemainingListView(generics.ListAPIView):
+    """
+    يعرض قائمة مبسطة بكل المواد في شعبة محددة مع عدد الحصص المتبقية لكل مادة.
+    Path: /api/sections/<section_id>/subjects/
+    """
+    serializer_class = SubjectRemainingLessonsSerializer
+
+    def get_queryset(self):
+        section_id = self.kwargs['section_id']
+        section = get_object_or_404(Section, id=section_id)
+        queryset = Subject.objects.filter(
+            models.Q(class_obj=section.class_obj) |
+            models.Q(section=section)
+        ).distinct()
+        return queryset
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['section_id'] = self.kwargs['section_id']
+        return context
 
 
 class ClassScheduleCreateView(generics.CreateAPIView):
@@ -122,18 +163,27 @@ class ClassScheduleCreateView(generics.CreateAPIView):
         
         response_data = serializer.data
 
+        # تفضيلات أيام المعلم
         teacher_id = serializer.validated_data.get('teacher').user_id
         teacher = get_object_or_404(Teacher, user_id=teacher_id)
         preferred_days_objects = teacher.availability.all().order_by('day_of_week')
-        teacher_preferred_days = [item.get_day_of_week_display() for item in preferred_days_objects]
+        teacher_preferred_days = [item.day_of_week.name_ar for item in preferred_days_objects]
         response_data['teacher_preferred_days'] = teacher_preferred_days
+
+        # عدد الحصص المتبقية لهذه المادة في هذه الشعبة
+        obj = serializer.instance
+        remaining_lessons = _calculate_remaining_lessons(
+            section=obj.section,
+            subject=obj.subject,
+            academic_year=obj.academic_year,
+            academic_term=obj.academic_term,
+        )
+        response_data['remaining_lessons'] = remaining_lessons
 
         headers = self.get_success_headers(serializer.data)
         
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
-
-       
 
 class ClassScheduleDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -176,7 +226,7 @@ class ClassScheduleDetailView(generics.RetrieveUpdateDestroyAPIView):
         teacher_id = serializer.validated_data.get('teacher').user_id
         teacher = get_object_or_404(Teacher, user_id=teacher_id)
         preferred_days_objects = teacher.availability.all().order_by('day_of_week')
-        teacher_preferred_days = [item.get_day_of_week_display() for item in preferred_days_objects]
+        teacher_preferred_days = [item.day_of_week.name_ar for item in preferred_days_objects]
         response_data['teacher_preferred_days'] = teacher_preferred_days
 
         headers = self.get_success_headers(serializer.data)
@@ -253,4 +303,121 @@ class ClassScheduleListView(generics.ListAPIView):
             queryset = queryset.filter(section_id=section_id)
             
         return queryset.distinct()
+        
+
+class ClassScheduleBulkCreateView(APIView):
+    """
+    إضافة قائمة من الحصص لشعبة واحدة دفعة واحدة.
+    Path: /api/sections/<section_id>/schedules/bulk_add/
+
+    Body مثال:
+    {
+        "schedules": [
+            {"subject": 1, "teacher": 3, "day_of_week": 2, "time_slot": 7},
+            {"subject": 2, "teacher": 4, "day_of_week": 3, "time_slot": 5}
+        ]
+    }
+    """
+    permission_classes = [CustomPermission]
+
+    def post(self, request, *args, **kwargs):
+        # الحصول على العام والفصل الحاليين
+        try:
+            current_academic_year = AcademicYear.objects.get(is_current=True)
+        except AcademicYear.DoesNotExist:
+            return Response({"detail": "لا يوجد سنة دراسية نشطة حالياً."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            current_academic_term = AcademicTerm.objects.get(
+                is_current=True,
+                academic_year=current_academic_year
+            )
+        except AcademicTerm.DoesNotExist:
+            return Response({"detail": "لا يوجد فصل دراسي نشط حالياً."}, status=status.HTTP_400_BAD_REQUEST)
+
+        payload = request.data
+        # أخذ القسم من الـ URL فقط
+        section_id = kwargs.get('section_id')
+        schedules = payload.get('schedules') or []
+
+        if not isinstance(schedules, list) or len(schedules) == 0:
+            return Response({"detail": "الرجاء إرسال قائمة 'schedules' غير فارغة."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # التأكد من وجود الشعبة
+        section = get_object_or_404(Section, id=section_id)
+
+        # التحقق من التكرارات داخل نفس الطلب
+        section_slot_keys = set()
+        teacher_slot_keys = set()
+        for idx, item in enumerate(schedules):
+            try:
+                subject_id = int(item.get('subject'))
+                teacher_id = int(item.get('teacher'))
+                day_id = int(item.get('day_of_week'))
+                slot_id = int(item.get('time_slot'))
+            except (TypeError, ValueError):
+                return Response({"detail": f"السجل رقم {idx} يحتوي على قيم غير صحيحة."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # منع تضارب داخل نفس الدُفعة لنفس الشعبة
+            key_section = (section.id, day_id, slot_id)
+            if key_section in section_slot_keys:
+                return Response({"detail": f"تكرار لنفس الشعبة في نفس اليوم والفترة داخل نفس الطلب عند السجل رقم {idx}."}, status=status.HTTP_400_BAD_REQUEST)
+            section_slot_keys.add(key_section)
+
+            # منع تضارب داخل نفس الدُفعة لنفس المعلم
+            key_teacher = (teacher_id, day_id, slot_id)
+            if key_teacher in teacher_slot_keys:
+                return Response({"detail": f"المعلم مكرر في نفس اليوم والفترة داخل نفس الطلب عند السجل رقم {idx}."}, status=status.HTTP_400_BAD_REQUEST)
+            teacher_slot_keys.add(key_teacher)
+
+        created_objects = []
+        response_items = []
+        errors = []
+
+        # عملية واحدة ذرّية
+        with transaction.atomic():
+            for idx, item in enumerate(schedules):
+                item_data = {
+                    'subject': item.get('subject'),
+                    'section': section.id,
+                    'teacher': item.get('teacher'),
+                    'academic_year': current_academic_year.id,
+                    'academic_term': current_academic_term.id,
+                    'day_of_week': item.get('day_of_week'),
+                    'time_slot': item.get('time_slot'),
+                }
+
+                serializer = ClassScheduleSerializer(data=item_data)
+                if not serializer.is_valid():
+                    errors.append({"index": idx, "errors": serializer.errors})
+                    continue
+
+                obj = serializer.save()
+                created_objects.append(obj)
+
+                # إعداد بيانات الإرجاع مع تفضيلات المعلم للأيام
+                # نحصل على أيام التفضيلات مرتبة لعرضها
+                try:
+                    teacher_obj = Teacher.objects.get(pk=item_data['teacher'])
+                    preferred_days_objects = teacher_obj.availability.all().order_by('day_of_week')
+                    teacher_preferred_days = [d.day_of_week.name_ar for d in preferred_days_objects]
+                except Teacher.DoesNotExist:
+                    teacher_preferred_days = []
+
+                item_response = ClassScheduleSerializer(obj).data
+                item_response['teacher_preferred_days'] = teacher_preferred_days
+                # المتبقي بعد إضافة هذا السجل
+                item_response['remaining_lessons'] = _calculate_remaining_lessons(
+                    section=section,
+                    subject=obj.subject,
+                    academic_year=obj.academic_year,
+                    academic_term=obj.academic_term,
+                )
+                response_items.append(item_response)
+
+            if errors:
+                # أي خطأ -> نرمي DRF ValidationError لضمان التراجع عن كل الإنشاءات
+                raise DRFValidationError({"detail": "فشل إنشاء بعض السجلات.", "errors": errors})
+
+        return Response(response_items, status=status.HTTP_201_CREATED)
         

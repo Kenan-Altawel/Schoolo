@@ -176,7 +176,7 @@ class SectionSubjectRequirementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SectionSubjectRequirement
-        fields = ['id', 'weekly_lessons_required', 'subject']
+        fields = [ 'weekly_lessons_required', 'subject']
 
 
 class SubjectSerializer2(serializers.ModelSerializer):
