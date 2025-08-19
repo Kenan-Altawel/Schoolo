@@ -39,7 +39,8 @@ urlpatterns += i18n_patterns(
     path('api/communication/', include('communication.urls')),
     path('api/', include('grading.urls')), 
     path('api/', include('schedules.urls')),
-    path('api/', include('attendance.urls')),    
+    path('api/', include('attendance.urls')),
+    path('api/school/', include('schoolProfile.urls')),
 
     prefix_default_language=False
 )

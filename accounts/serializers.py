@@ -264,8 +264,8 @@ class SetPasswordSerializer(serializers.Serializer):
 
         return {
             'message': _('تم تعيين كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.'),
-            'access_token': access_token,  
-            'refresh_token': str(refresh), 
+            'access': access_token,  
+            'refresh': str(refresh), 
             'user_id': user.id,
             'phone_number': user.phone_number,
             'user_role': 'admin' if user.groups.filter(name='Manager').exists() else (

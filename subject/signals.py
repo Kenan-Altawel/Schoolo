@@ -12,8 +12,8 @@ def create_initial_subject_icons(sender, **kwargs):
 
     # قائمة الأيقونات الثابتة التي سيتم إضافتها
     icons_to_create = [
-        {'name': 'رياضيات', 'icon_file': 'subject/subject_files/icons/math.png'},
-        {'name': 'كيمياء', 'icon_file': 'subject/subject_files/icons/chemistry.png'},
+        {'name': 'رياضيات', 'icon_file': 'subject/subject_files/icons/math.jpg'},
+        {'name': 'كيمياء', 'icon_file': 'subject/subject_files/icons/chemistry.jpg'},
     ]
 
     for icon_data in icons_to_create:
