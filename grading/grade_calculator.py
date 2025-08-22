@@ -55,11 +55,18 @@ class GradeCalculator:
         يحسب المعدل العام عبر جميع المواد على شكل متوسط معدلات المواد (كنسب مئوية).
         كل مادة تُحسب كنسبة مئوية موحّدة ضمن نفس القيود، ثم نأخذ متوسط هذه النسب.
         """
-        base_qs = self._get_base_queryset(
-            student_id,
-            academic_year_id=academic_year_id,
-            academic_term_id=academic_term_id,
-        )
+        base_qs = Grade.objects.filter(student_id=student_id)
+
+        if academic_term_id:
+            base_qs = base_qs.filter(exam__academic_term_id=academic_term_id)
+        elif academic_year_id:
+            base_qs = base_qs.filter(exam__academic_term__academic_year_id=academic_year_id)
+        else:
+            return None
+        
+        if not base_qs.exists():
+            return None
+        
         subject_ids = (
             base_qs
             .values_list('exam__subject_id', flat=True)

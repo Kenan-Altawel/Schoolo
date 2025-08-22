@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'admins',
     'grading',
     'schedules',
+    'progression',
     'communication',
     'attendance',
     'contents',

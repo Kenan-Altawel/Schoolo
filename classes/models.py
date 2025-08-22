@@ -6,6 +6,14 @@ from academic.models import AcademicYear
 class Class(AutoCreateAndAutoUpdateTimeStampedModel):
     name = models.CharField(max_length=100,verbose_name=_("اسم الفصل"),)
     description = models.TextField(blank=True,null=True,verbose_name=_("الوصف"))
+    next_class = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='previous_class',
+        verbose_name=_("الصف التالي")
+    )
 
     class Meta:
         verbose_name = _("الفصل الدراسي")

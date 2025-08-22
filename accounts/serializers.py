@@ -346,8 +346,8 @@ class BaseLoginSerializer(serializers.Serializer):
 
         return {
             'message': _('تم تسجيل الدخول بنجاح.'),
-            'access_token': tokens['access'],
-            'refresh_token': tokens['refresh'],
+            'access': tokens['access'],
+            'refresh': tokens['refresh'],
             'user_id': user.id,
             'phone_number': user.phone_number,
             'user_role': user_role,

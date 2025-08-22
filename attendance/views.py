@@ -66,6 +66,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 filters &= Q(date=date)
 
             return queryset.filter(filters).distinct()
+        
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         return Response(

@@ -234,7 +234,6 @@ class ContentAttachmentViewSet(viewsets.ModelViewSet):
                     attachment_data['attachment_type'] = 'audio'
                 else:
                     attachment_data['attachment_type'] = 'file' # نوع افتراضي للملفات الأخرى
-
                 serializer = self.get_serializer(data=attachment_data)
                 try:
                     serializer.is_valid(raise_exception=True)

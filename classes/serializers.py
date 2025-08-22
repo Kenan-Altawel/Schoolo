@@ -36,29 +36,76 @@ class SectionSerializer(serializers.ModelSerializer):
             return obj.capacity - obj.students_count
         return None
     
-    def create(self, validated_data):
-        class_obj = self.context.get('class_obj')
+    def validate(self, data):
+        instance = self.instance
+        class_obj = self.context.get('class_obj') or (instance.class_obj if instance else None)
+        
         if not class_obj:
-            raise serializers.ValidationError({"detail": _("Class object must be provided in the context for creating a section.")})
-
-        validated_data['class_obj'] = class_obj 
-
+            raise serializers.ValidationError({"detail": _("Class object must be provided.")})
+        
+        # جلب العام الدراسي الحالي
         try:
             current_academic_year = AcademicYear.objects.get(is_current=True)
         except AcademicYear.DoesNotExist:
             raise serializers.ValidationError({"academic_year": _("لا يوجد عام دراسي حالي محدد. الرجاء تحديد عام دراسي حالي أولاً.")})
         except AcademicYear.MultipleObjectsReturned:
             raise serializers.ValidationError({"academic_year": _("يوجد أكثر من عام دراسي حالي. الرجاء مراجعة البيانات.")})
+            
+        academic_year = current_academic_year
+        
+        name = data.get('name', instance.name if instance else None)
+        queryset = Section.objects.filter(name=name, class_obj=class_obj, academic_year=academic_year)
+        
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+            
+        if queryset.exists():
+            raise serializers.ValidationError({"name": _("الشعبة بهذا الاسم موجودة بالفعل في هذا الفصل الدراسي وهذا العام.")})
+            
+        stream_type_to_add = data.get('stream_type', instance.stream_type if instance else None)
+        
+        existing_streams = class_obj.sections.filter(academic_year=academic_year).values_list('stream_type', flat=True)
+        existing_streams_set = set(existing_streams)
 
+        if instance and instance.stream_type in existing_streams_set:
+            existing_streams_set.remove(instance.stream_type)
+
+        is_general_to_add = stream_type_to_add == 'General'
+        is_general_in_class = 'General' in existing_streams_set
+        is_specialized_to_add = stream_type_to_add in ['Scientific', 'Literary']
+        is_specialized_in_class = 'Scientific' in existing_streams_set or 'Literary' in existing_streams_set
+        
+        if is_general_to_add and is_specialized_in_class:
+            raise serializers.ValidationError({
+                "stream_type": _("لا يمكن إضافة شعبة عامة إلى صف يحتوي على شعب علمية أو أدبية.")
+            })
+        
+        if is_specialized_to_add and is_general_in_class:
+            raise serializers.ValidationError({
+                "stream_type": _("لا يمكن إضافة شعبة علمية أو أدبية إلى صف يحتوي على شعبة عامة.")
+            })
+        
+        return data
+
+    def create(self, validated_data):
+        class_obj = self.context.get('class_obj')
+        
+        # جلب العام الدراسي الحالي
+        try:
+            current_academic_year = AcademicYear.objects.get(is_current=True)
+        except (AcademicYear.DoesNotExist, AcademicYear.MultipleObjectsReturned) as e:
+            raise serializers.ValidationError({"academic_year": str(e)})
+
+        validated_data['class_obj'] = class_obj
         validated_data['academic_year'] = current_academic_year
-
+        
         return super().create(validated_data)
-
+    
     def update(self, instance, validated_data):
         validated_data.pop('academic_year', None)
         validated_data.pop('class_obj', None)
         return super().update(instance, validated_data)
-    
+
 
 class TaughtClassSerializer(serializers.ModelSerializer):
     sections_count = serializers.SerializerMethodField(read_only=True)

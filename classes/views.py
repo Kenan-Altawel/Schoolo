@@ -36,10 +36,18 @@ class ClassViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
    
-    @action(detail=True, methods=['post'], url_path='sections', serializer_class=SectionSerializer)
+    @action(detail=False, methods=['post'], url_path='add-sections', serializer_class=SectionSerializer)
     def create_section(self, request, pk=None):
-        class_obj = self.get_object() 
-        serializer = self.get_serializer(data=request.data,many=True, context={'request': request, 'class_obj': class_obj})
+        class_id = request.data.get('class_id')
+        if not class_id:
+            return Response({"detail": "class_id must be provided in the request body."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            class_obj = Class.objects.get(id=class_id)
+        except Class.DoesNotExist:
+            return Response({"detail": "Class not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = self.get_serializer(data=request.data.get('sections', []), many=True, context={'request': request, 'class_obj': class_obj})
         serializer.is_valid(raise_exception=True)
         serializer.save() 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
