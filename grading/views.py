@@ -194,6 +194,7 @@ class GradeViewSet(viewsets.ModelViewSet):
             queryset= Grade.objects.none()
             
         subject_id = self.request.query_params.get('subject_id')
+        exam_id = self.request.query_params.get('exam_id')
         exam_type = self.request.query_params.get('exam_type')
         target_class_id = self.request.query_params.get('target_class_id')
         target_section_id = self.request.query_params.get('section_id')
@@ -204,6 +205,8 @@ class GradeViewSet(viewsets.ModelViewSet):
 
         if subject_id:
             query_params_filters &= Q(exam__subject_id=subject_id)
+        if exam_id:
+            query_params_filters &= Q(exam_id=exam_id)
         if exam_type:
             query_params_filters &= Q(exam__exam_type=exam_type)
         if target_class_id:

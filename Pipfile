@@ -9,6 +9,9 @@ django-filter = "*"
 djangorestframework = "*"
 djangorestframework-jwt = "*"
 djangorestframework-simplejwt = "*"
+pandas = "*"
+openpyxl = "*"
+xlsxwriter = "*"
 
 [dev-packages]
 

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Attendance
-
+from students.models import Student
 class AttendanceSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
     recorded_by_name = serializers.SerializerMethodField()
@@ -17,8 +17,17 @@ class AttendanceSerializer(serializers.ModelSerializer):
 
     def get_student_name(self, obj):
         # التحقق من وجود الطالب قبل محاولة الوصول إلى اسمه
-        if obj.student and obj.student.user:
+        if isinstance(obj, Attendance):
             return obj.student.user.get_full_name()
+        elif isinstance(obj, dict):
+            # إذا كان قاموسًا، ابحث عن المفتاح 'student'
+            student_id = obj.get('student')
+            if student_id:
+                try:
+                    student_obj = Student.objects.get(pk=student_id)
+                    return student_obj.user.get_full_name()
+                except Student.DoesNotExist:
+                    return None
         return None
 
     def get_recorded_by_name(self, obj):
