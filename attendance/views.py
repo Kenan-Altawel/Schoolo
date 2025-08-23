@@ -41,6 +41,14 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
         academic_year_id = self.request.query_params.get('academic_year_id')
         academic_term_id = self.request.query_params.get('academic_term_id')
+
+        # الفلترة بناءً على academic_year و academic_term
+        if academic_year_id:
+            filters &= Q(academic_year_id=academic_year_id)
+        if academic_term_id:
+            filters &= Q(academic_term_id=academic_term_id)
+        
+        # إذا لم يتم تحديد academic_year_id أو academic_term_id، استخدم القيم الحالية
         if not academic_year_id and not academic_term_id:
             try:
                 current_academic_year = AcademicYear.objects.get(is_current=True)
@@ -50,23 +58,21 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 )
                 filters &= Q(academic_year=current_academic_year, academic_term=current_academic_term)
             except (AcademicYear.DoesNotExist, AcademicTerm.DoesNotExist):
+                # إذا لم يتم العثور على سنة أو فصل دراسي حالي، لا تُرجع أي بيانات.
                 return Attendance.objects.none()
-            else:
-                if academic_year_id:
-                    filters &= Q(academic_year_id=academic_year_id)
-                if academic_term_id:
-                    filters &= Q(academic_term_id=academic_term_id)
 
-            student_id = self.request.query_params.get('student_id')
-            if student_id and (user.is_superuser or user.is_admin()):
-                filters &= Q(student_id=student_id)
+        # الفلترة بناءً على student_id (متاحة فقط للادمن)
+        student_id = self.request.query_params.get('student_id')
+        if student_id and (user.is_superuser or user.is_admin()):
+            filters &= Q(student_id=student_id)
 
-            date = self.request.query_params.get('date')
-            if date:
-                filters &= Q(date=date)
+        # الفلترة بناءً على date
+        date = self.request.query_params.get('date')
+        if date:
+            filters &= Q(date=date)
 
-            return queryset.filter(filters).distinct()
-        
+        return queryset.filter(filters).distinct()
+    
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         return Response(
@@ -142,7 +148,6 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         
         elif user.is_student():
             try:
-                # الكود الآن يستخرج معرف الطالب تلقائياً من المستخدم نفسه
                 student_obj = Student.objects.get(user=user)
                 queryset = Attendance.objects.filter(student=student_obj)
             except Student.DoesNotExist:
