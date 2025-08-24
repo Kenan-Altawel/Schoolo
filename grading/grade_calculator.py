@@ -1,4 +1,5 @@
 from django.db.models import Avg, Sum
+from academic.models import AcademicYear
 from students.models import Student
 from .models import Grade
 from django.utils.translation import gettext_lazy as _
@@ -9,17 +10,34 @@ class GradeCalculator:
     كلاس مسؤول عن حساب معدلات الطلاب
     """
 
+    def _get_current_year_id(self):
+        """
+        دالة مساعدة للعثور على معرف السنة الدراسية الحالية.
+        """
+        try:
+            current_academic_year = AcademicYear.objects.get(is_current=True)
+            return current_academic_year.id
+        except AcademicYear.DoesNotExist:
+            return None
+
     def _get_base_queryset(self, student_id, academic_year_id=None, academic_term_id=None, subject_id=None):
         """
         دالة مساعدة لإنشاء QuerySet الأساسي
         """
         grades_queryset = Grade.objects.filter(student_id=student_id)
+        
         if academic_year_id:
             grades_queryset = grades_queryset.filter(exam__academic_year_id=academic_year_id)
+        elif not academic_term_id: # إذا لم يتم تحديد سنة أو فصل، نأخذ السنة الحالية
+            current_year_id = self._get_current_year_id()
+            if current_year_id:
+                grades_queryset = grades_queryset.filter(exam__academic_year_id=current_year_id)
+
         if academic_term_id:
             grades_queryset = grades_queryset.filter(exam__academic_term_id=academic_term_id)
         if subject_id:
             grades_queryset = grades_queryset.filter(exam__subject_id=subject_id)
+
         return grades_queryset
 
     def _normalized_percentage_for_queryset(self, grades_queryset):
@@ -31,11 +49,12 @@ class GradeCalculator:
             total_score=Sum('score'),
             total_max=Sum('exam__total_marks'),
         )
-        total_score = aggregates['total_score']
-        total_max = aggregates['total_max']
+        total_score = aggregates.get('total_score')
+        total_max = aggregates.get('total_max')
+
         if total_score is None or total_max in (None, Decimal('0')):
             return None
-        percent = (Decimal(total_score) / Decimal(total_max)) * Decimal('100')
+        percent = (total_score / total_max) * Decimal('100')
         return round(percent, 2)
 
     def calculate_subject_average(self, student_id, subject_id, academic_year_id=None, academic_term_id=None):
@@ -53,25 +72,23 @@ class GradeCalculator:
     def calculate_overall_average(self, student_id, academic_year_id=None, academic_term_id=None):
         """
         يحسب المعدل العام عبر جميع المواد على شكل متوسط معدلات المواد (كنسب مئوية).
-        كل مادة تُحسب كنسبة مئوية موحّدة ضمن نفس القيود، ثم نأخذ متوسط هذه النسب.
         """
-        base_qs = Grade.objects.filter(student_id=student_id)
+        # إذا لم يتم تحديد سنة أو فصل، نستخدم السنة الحالية
+        if not academic_year_id and not academic_term_id:
+            academic_year_id = self._get_current_year_id()
+            if not academic_year_id:
+                return None  # لا توجد سنة دراسية حالية
 
+        base_qs = Grade.objects.filter(student_id=student_id)
+        if academic_year_id:
+            base_qs = base_qs.filter(exam__academic_year_id=academic_year_id)
         if academic_term_id:
             base_qs = base_qs.filter(exam__academic_term_id=academic_term_id)
-        elif academic_year_id:
-            base_qs = base_qs.filter(exam__academic_term__academic_year_id=academic_year_id)
-        else:
-            return None
         
         if not base_qs.exists():
             return None
         
-        subject_ids = (
-            base_qs
-            .values_list('exam__subject_id', flat=True)
-            .distinct()
-        )
+        subject_ids = base_qs.values_list('exam__subject_id', flat=True).distinct()
         per_subject_avgs = []
         for sid in subject_ids:
             subject_qs = base_qs.filter(exam__subject_id=sid)

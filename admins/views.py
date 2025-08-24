@@ -1,10 +1,12 @@
 from django.shortcuts import render
-from accounts.permissions import IsSuperuser
-from .serializers import ManagerAdminUpdateSerializer
+from accounts.permissions import  IsSuperuser
+from .serializers import *
 from .models import Admin
 from rest_framework import generics, status
 from rest_framework.response import Response
-# Create your views here.
+from .filters import TeacherFilter
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 class ManagerAdminUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Admin.objects.all()
@@ -32,10 +34,20 @@ class ManagerAdminDeleteView(generics.DestroyAPIView):
             instance.delete()
             user.delete()
             
-            return Response({"detail": "تم حذف الطالب بنجاح"}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"detail": "تم حذف بنجاح"}, status=status.HTTP_204_NO_CONTENT)
         
         except Admin.DoesNotExist:
-            return Response({"detail": "الطالب غير موجود"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": " غير موجود"}, status=status.HTTP_404_NOT_FOUND)
         
         except Exception as e:
             return Response({"detail": f"حدث خطأ أثناء الحذف: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+        
+class AdminListView(generics.ListAPIView):
+    permission_classes = [IsSuperuser] 
+    queryset = Admin.objects.all()
+    filterset_class = TeacherFilter
+    filter_backends = [DjangoFilterBackend] 
+    serializer_class = AdminListSerializer
+    filter_backends = [OrderingFilter]
+    ordering_fields = ['specialization', 'user__first_name', 'user__last_name']
+    ordering = ['user__first_name']

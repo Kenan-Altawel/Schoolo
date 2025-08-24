@@ -500,3 +500,169 @@ class OverallAverageView(APIView):
             academic_term_id=academic_term_id,
         )
         return Response({"overall_average": avg})
+    
+
+import pandas as pd
+import io
+import xlsxwriter
+from django.http import HttpResponse
+
+class GradeReportViewSet(viewsets.ViewSet):
+    """
+    ViewSet for generating and downloading Excel reports for grades.
+    """
+    @action(detail=False, methods=['get'])
+    def download_excel_report(self, request):
+        student_id = request.query_params.get('student_id')
+        section_id = request.query_params.get('section_id')
+        subject_id = request.query_params.get('subject_id')
+        user = request.user
+
+        if not (student_id or section_id):
+            return Response({"error": "يجب توفير معرف الطالب (student_id) أو معرف الشعبة (section_id)."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check permissions
+        if not (user.is_superuser or user.is_admin() or user.is_teacher()):
+            return Response({"error": "لا تملك الصلاحية للوصول إلى تقارير الدرجات."}, status=status.HTTP_403_FORBIDDEN)
+
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        worksheet = workbook.add_worksheet('Grades Report')
+        bold = workbook.add_format({'bold': True})
+        
+        # Set report start column for centering
+        start_column_index = 3 # Column D
+
+        if student_id:
+            # Case 1: All grades for a single student
+            try:
+                student_obj = Student.objects.get(pk=student_id)
+            except Student.DoesNotExist:
+                return Response({"error": "الطالب غير موجود."}, status=status.HTTP_404_NOT_FOUND)
+
+            grades_queryset = Grade.objects.filter(student_id=student_id)
+            if not grades_queryset.exists():
+                return Response({"message": "لا توجد درجات لهذا الطالب."}, status=status.HTTP_200_OK)
+
+            # Write student info
+            worksheet.write(1, start_column_index, 'Student Name:', bold)
+            worksheet.write(1, start_column_index + 1, student_obj.user.get_full_name())
+            worksheet.write(2, start_column_index, 'Section:', bold)
+            worksheet.write(2, start_column_index + 1, student_obj.section.name if hasattr(student_obj, 'section') and student_obj.section else "غير محدد")
+            
+            # Calculate and prepare data
+            grade_calculator = GradeCalculator()
+            grades_by_subject = {}
+            for grade in grades_queryset:
+                subject_name = grade.exam.subject.name
+                if subject_name not in grades_by_subject:
+                    grades_by_subject[subject_name] = []
+                grades_by_subject[subject_name].append(grade.score)
+
+            report_data = []
+            for subject, grades_list in grades_by_subject.items():
+                subject_avg = sum(grades_list) / len(grades_list)
+                report_data.append([
+                    subject,
+                    ', '.join(map(str, grades_list)),
+                    f"{subject_avg:.2f}"
+                ])
+            overall_avg = grade_calculator.calculate_overall_average(student_id=student_id)
+            print(overall_avg)
+            # Write report data
+            headers = ['Subject', 'Grades', 'Subject Average']
+            worksheet.write(4, start_column_index, 'Detailed Grades:', bold)
+            worksheet.write_row(5, start_column_index, headers, bold)
+            
+            current_row = 6
+            for row in report_data:
+                worksheet.write_row(current_row, start_column_index, row)
+                current_row += 1
+
+            # Write overall average - Corrected Line
+            worksheet.write(current_row + 1, start_column_index, 'Overall Final Average:', bold)
+            formatted_avg = f"{overall_avg:.2f}" if overall_avg is not None else "N/A"
+            worksheet.write(current_row + 1, start_column_index + 1, formatted_avg)
+
+            filename = f'Student_Grades_Report_{student_obj.user.get_full_name()}.xlsx'
+
+        elif section_id and subject_id:
+            # Case 2: Grades for a section in a single subject
+            try:
+                section_obj = Section.objects.get(pk=section_id)
+                subject_obj = Subject.objects.get(pk=subject_id)
+            except (Section.DoesNotExist, Subject.DoesNotExist):
+                return Response({"error": "الشعبة أو المادة غير موجودة."}, status=status.HTTP_404_NOT_FOUND)
+
+            grades_queryset = Grade.objects.filter(student__section=section_obj, exam__subject=subject_obj).select_related('student__user')
+            if not grades_queryset.exists():
+                return Response({"message": "لا توجد درجات لطلاب هذه الشعبة في هذه المادة."}, status=status.HTTP_200_OK)
+
+            # Write section and subject info
+            worksheet.write(1, start_column_index, 'Class:', bold)
+            worksheet.write(1, start_column_index + 1, section_obj.class_obj.name if section_obj.class_obj else "غير محدد")
+            worksheet.write(2, start_column_index, 'Section:', bold)
+            worksheet.write(2, start_column_index + 1, section_obj.name)
+            worksheet.write(3, start_column_index, 'Subject:', bold)
+            worksheet.write(3, start_column_index + 1, subject_obj.name)
+
+            # Prepare report data
+            report_data = [{'Student Name': grade.student.user.get_full_name(), 'Grade': grade.score} for grade in grades_queryset]
+            df_report = pd.DataFrame(report_data)
+
+            # Write report
+            worksheet.write_row(5, start_column_index, df_report.columns, bold)
+            for row_num, row_data in enumerate(df_report.values):
+                worksheet.write_row(row_num + 6, start_column_index, row_data)
+
+            filename = f'Section_Grades_{section_obj.name}_{subject_obj.name}.xlsx'
+
+        elif section_id:
+            # Case 3: Overall averages for a section
+            try:
+                section_obj = Section.objects.get(pk=section_id)
+            except Section.DoesNotExist:
+                return Response({"error": "الشعبة غير موجودة."}, status=status.HTTP_404_NOT_FOUND)
+
+            students_in_section = Student.objects.filter(section=section_obj)
+            if not students_in_section.exists():
+                return Response({"message": "لا يوجد طلاب في هذه الشعبة."}, status=status.HTTP_200_OK)
+
+            # Write section info
+            worksheet.write(1, start_column_index, 'Class:', bold)
+            worksheet.write(1, start_column_index + 1, section_obj.class_obj.name if section_obj.class_obj else "غير محدد")
+            worksheet.write(2, start_column_index, 'Section:', bold)
+            worksheet.write(2, start_column_index + 1, section_obj.name)
+
+            # Prepare report data
+            grade_calculator = GradeCalculator()
+            report_data = []
+            for student_obj in students_in_section:
+                overall_avg = grade_calculator.calculate_overall_average(student_id=student_obj.pk)
+                formatted_avg = f"{overall_avg:.2f}" if overall_avg is not None else "N/A"
+                report_data.append({
+                    'Student Name': student_obj.user.get_full_name(),
+                    'Overall Average': formatted_avg
+                })
+            df_report = pd.DataFrame(report_data)
+
+            # Write report
+            worksheet.write_row(4, start_column_index, df_report.columns, bold)
+            for row_num, row_data in enumerate(df_report.values):
+                worksheet.write_row(row_num + 5, start_column_index, row_data)
+                
+            filename = f'Section_Averages_Report_{section_obj.name}.xlsx'
+        
+        else:
+             return Response({"error": "الرجاء تحديد معرف الطالب أو الشعبة أو كليهما."}, status=status.HTTP_400_BAD_REQUEST)
+
+        workbook.close()
+        output.seek(0)
+        
+        response = HttpResponse(
+            output.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response

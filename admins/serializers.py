@@ -10,7 +10,7 @@ class ManagerAdminUpdateSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(source='user.phone_number', required=False)
     
     class Meta:
-        model = Admin()
+        model = Admin
         fields = [
             'first_name', 'last_name', 'phone_number', 'is_active',
             'department'
@@ -26,3 +26,15 @@ class ManagerAdminUpdateSerializer(serializers.ModelSerializer):
         user.save()
         
         return super().update(instance, validated_data)
+
+class AdminListSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id')
+    first_name = serializers.CharField(source='user.first_name', required=False)
+    last_name = serializers.CharField(source='user.last_name', required=False)
+    phone_number = serializers.CharField(source='user.phone_number', required=False)
+    
+    class Meta:
+        model = Admin
+        fields = ['user_id', 'first_name','last_name', 'phone_number','department']
+    
+    

@@ -190,7 +190,6 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         if date_str:
             try:
                 date_obj = datetime.date.fromisoformat(date_str)
-                # حساب بداية الشهر ونهايته من التاريخ المدخل
                 start_date = date_obj.replace(day=1)
                 end_date = start_date.replace(month=start_date.month % 12 + 1, day=1) - datetime.timedelta(days=1)
                 filters &= Q(date__range=(start_date, end_date))
@@ -206,7 +205,6 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         
         queryset = queryset.filter(filters)
 
-        # حساب إحصائيات الحضور
         stats = queryset.aggregate(
             present_count=Count(Case(When(status='present', then=1))),
             absent_count=Count(Case(When(status='absent', then=1))),
@@ -216,7 +214,6 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         )
         total = stats['total_count'] or 0
 
-        # حساب النسب المئوية
         percentages = {
             "present": (stats['present_count'] / total) * 100 if total > 0 else 0,
             "absent": (stats['absent_count'] / total) * 100 if total > 0 else 0,

@@ -218,31 +218,23 @@ class ManagerStudentCreationSerializer(serializers.ModelSerializer):
 #عرض الطلاب   
 class StudentListSerializer(serializers.ModelSerializer):
     
-    user_data = serializers.SerializerMethodField()
-    
+    id = serializers.IntegerField(source='user.id')
+    phone_number = serializers.CharField(source='user.phone_number')
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
+
     student_class = serializers.StringRelatedField(source='student_class.name')
     section = serializers.StringRelatedField(source='section.name')
 
     class Meta:
         model = Student
         fields = [
-            'user_data',
+            'id', 'phone_number', 'first_name', 'last_name',
             'father_name', 'gender', 'address', 'parent_phone',
             'student_class', 'section', 'date_of_birth', 'image',
             'student_status', 'register_status',
         ]
-
-    def get_user_data(self, obj):
-        user = obj.user
-        if user:
-            return {
-                "id": user.id,
-                "phone_number": user.phone_number,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-            }
-        return None
-
+        
 class StudentProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student

@@ -7,6 +7,7 @@ router = DefaultRouter()
 
 router.register(r'exams', ExamViewSet, basename='exam')
 router.register(r'grades', GradeViewSet, basename='grade') # تم إضافة هذا السطر
+router.register(r'grades-reports', GradeReportViewSet, basename='grades_reports')
 
 urlpatterns = [
 	path('', include(router.urls)),
