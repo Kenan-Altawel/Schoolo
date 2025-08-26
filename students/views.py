@@ -12,6 +12,7 @@ from .serializers import *
 from classes.models import Class
 from accounts.models import User
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.generics import RetrieveAPIView
 
 class PendingStudentList(generics.ListAPIView):
     """
@@ -176,7 +177,11 @@ class StudentProfileUpdateView(generics.RetrieveUpdateAPIView):
         self.perform_update(serializer)
 
         return Response({"detail": "تم تحديث البيانات بنجاح"}, status=status.HTTP_200_OK)
-
+    
+class StudentDetailView(RetrieveAPIView):
+    queryset = Student.objects.all()
+    serializer_class = StudentListSerializer
+    lookup_field = 'pk'
 
 class ManagerStudentUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Student.objects.all()

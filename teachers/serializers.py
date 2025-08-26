@@ -44,16 +44,18 @@ class TeacherProfileUpdateSerializer(serializers.ModelSerializer):
     
 
 class TeacherListSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(source='user.id')
-    full_name = serializers.SerializerMethodField()
-
+    first_name = serializers.CharField(source='user.first_name', required=False)
+    last_name = serializers.CharField(source='user.last_name', required=False)
+    is_active = serializers.BooleanField(source='user.is_active', required=False)
+    phone_number = serializers.CharField(source='user.phone_number', required=False)
+    
     class Meta:
         model = Teacher
-        fields = ['user_id', 'full_name', 'specialization']
-    
-    def get_full_name(self, obj):
-        return obj.user.get_full_name()
-    
+        fields = [
+            'first_name', 'last_name', 'phone_number', 'is_active',
+            'address', 'specialization'
+        ]
+        
 class TeacherSubjectSerializer(serializers.ModelSerializer):
     subject_name = serializers.SerializerMethodField()
 

@@ -11,4 +11,5 @@ urlpatterns = [
     path('profile/update/', StudentProfileUpdateView.as_view(), name='student-profile-update'),
     path('<int:pk>/update-student/', ManagerStudentUpdateView.as_view(), name='manager-student-update'),
     path('<int:pk>/delete-student/', ManagerStudentDeleteView.as_view(), name='manager-student-delete'),
+    path('<int:pk>/', StudentDetailView.as_view(), name='student-detail'),
 ]

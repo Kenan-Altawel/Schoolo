@@ -51,3 +51,10 @@ class AdminListView(generics.ListAPIView):
     filter_backends = [OrderingFilter]
     ordering_fields = ['specialization', 'user__first_name', 'user__last_name']
     ordering = ['user__first_name']
+
+class AdminDetailView(generics.RetrieveAPIView):
+    permission_classes = [IsSuperuser]
+    queryset = Admin.objects.all()
+    serializer_class = AdminListSerializer
+    lookup_field = 'pk'
+    

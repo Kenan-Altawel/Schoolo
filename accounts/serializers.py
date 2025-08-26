@@ -377,7 +377,7 @@ class AdminOrSuperuserLoginSerializer(TokenObtainPairSerializer):
 
         if user.is_superuser:
             token['role'] = 'superuser'
-        elif user.is_staff:
+        elif user.groups.filter(name='Manager').exists():
             token['role'] = 'admin'
         else:
             return "you can not access this" 

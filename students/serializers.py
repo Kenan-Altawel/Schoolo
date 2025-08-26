@@ -209,7 +209,6 @@ class ManagerStudentCreationSerializer(serializers.ModelSerializer):
                 logger.exception("An unexpected error occurred during student creation.")
                 raise serializers.ValidationError(_(f"حدث خطأ غير متوقع أثناء إنشاء الطالب. الرجاء المحاولة لاحقاً. الخطأ: {e}"))
 
-            # إرجاع كائن student لتمكين CreateAPIView من بناء الاستجابة
             return validated_data
         except Exception as e:
             logger.exception("An unexpected error occurred during user/student creation.") 
@@ -222,18 +221,18 @@ class StudentListSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(source='user.phone_number')
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
-
-    student_class = serializers.StringRelatedField(source='student_class.name')
-    section = serializers.StringRelatedField(source='section.name')
-
+    class_name = serializers.StringRelatedField(source='student_class.name')
+    section_name = serializers.StringRelatedField(source='section.name')
+    image = serializers.ImageField(read_only=True)
     class Meta:
         model = Student
         fields = [
             'id', 'phone_number', 'first_name', 'last_name',
             'father_name', 'gender', 'address', 'parent_phone',
-            'student_class', 'section', 'date_of_birth', 'image',
+            'student_class','class_name', 'section','section_name', 'date_of_birth', 'image',
             'student_status', 'register_status',
         ]
+    
         
 class StudentProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:

@@ -69,7 +69,12 @@ class TeacherListView(generics.ListAPIView):
     ordering_fields = ['specialization', 'user__first_name', 'user__last_name']
     ordering = ['user__first_name']
 
-
+class TeacherDetailView(generics.RetrieveAPIView):
+    permission_classes = [CustomPermission]
+    queryset = Teacher.objects.all()
+    serializer_class = TeacherListSerializer
+    lookup_field = 'pk'
+    
 class TeacherSubjectsListView(generics.ListAPIView):
     serializer_class = TeacherSubjectSerializer
     permission_classes = [CustomPermission] 
@@ -95,8 +100,6 @@ class ManagerTeacherUpdateView(generics.RetrieveUpdateAPIView):
 class ManagerTeacherDeleteView(generics.DestroyAPIView):
     queryset = Teacher.objects.all()
     permission_classes = [IsAdminOrSuperuser]
-
-    
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -104,10 +107,10 @@ class ManagerTeacherDeleteView(generics.DestroyAPIView):
             instance.delete()
             user.delete()
             
-            return Response({"detail": "تم حذف الطالب بنجاح"}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"detail": "تم حذف المعلم بنجاح"}, status=status.HTTP_204_NO_CONTENT)
         
         except Teacher.DoesNotExist:
-            return Response({"detail": "الطالب غير موجود"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "المعلم غير موجود"}, status=status.HTTP_404_NOT_FOUND)
         
         except Exception as e:
             return Response({"detail": f"حدث خطأ أثناء الحذف: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
