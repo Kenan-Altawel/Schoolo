@@ -35,8 +35,40 @@ class ExamViewSet(viewsets.ModelViewSet):
             queryset = Exam.objects.all()
         elif user.is_teacher():
             try:
-                teacher = Teacher.objects.get(user=user)
-                queryset = Exam.objects.filter(teacher=teacher)
+                teacher = user.teacher_profile
+                
+                # جلب معرفات الشعب، والصفوف، والمواد، وأنواع التخصصات التي يدرسها المعلم
+                taught_schedules = teacher.teaching_schedules.filter(
+                    academic_year__is_current=True,
+                    academic_term__is_current=True
+                )
+                taught_section_ids = taught_schedules.values_list('section__id', flat=True).distinct()
+                taught_class_ids = taught_schedules.values_list('section__class_obj__id', flat=True).distinct()
+                taught_subject_ids = taught_schedules.values_list('subject__id', flat=True).distinct()
+                taught_stream_types = taught_schedules.values_list('section__stream_type', flat=True).distinct()
+                
+                # فلترة الامتحانات لتظهر للمعلم ما يخصه
+                queryset = Exam.objects.filter(
+                    # الحالة الأولى: الامتحان مخصص لشعبة محددة يدرسها المعلم
+                    Q(target_section__id__in=taught_section_ids) |
+                    
+                    # الحالة الثانية: الامتحان مخصص لصف يدرسه المعلم (وليس لتخصص محدد داخل الصف)
+                    (
+                        Q(target_class__id__in=taught_class_ids) & 
+                        Q(target_section__isnull=True) & 
+                        Q(stream_type__isnull=True) &
+                        Q(subject__id__in=taught_subject_ids) 
+                    ) |
+                    
+                    # الحالة الثالثة (الجديدة): الامتحان مخصص لصف وتخصص محدد يدرسه المعلم
+                    (
+                        Q(target_class__id__in=taught_class_ids) & 
+                        Q(target_section__isnull=True) & 
+                        Q(stream_type__in=taught_stream_types) &
+                        Q(subject__id__in=taught_subject_ids)
+                    )
+                ).distinct()
+                
             except Teacher.DoesNotExist:
                 queryset = Exam.objects.none()
         elif user.is_student():
@@ -138,17 +170,10 @@ class ExamViewSet(viewsets.ModelViewSet):
 class ExamConductView(generics.RetrieveUpdateAPIView):
     queryset = Exam.objects.all()
     serializer_class = ExamSerializer
-    permission_classes = [IsTeacher]
+    permission_classes = [IsAdminOrSuperuser]
 
     def patch(self, request, *args, **kwargs):
         exam = self.get_object()
-        
-        # التحقق من أن المستخدم هو المعلم المسؤول عن هذا الاختبار
-        if exam.teacher != request.user.teacher_profile:
-            return Response(
-                {"detail": _("ليس لديك الصلاحية لإجراء هذا الاختبار.")},
-                status=status.HTTP_403_FORBIDDEN
-            )
         
         if exam.is_conducted:
             return Response(
@@ -171,7 +196,7 @@ class ExamConductView(generics.RetrieveUpdateAPIView):
 class GradeViewSet(viewsets.ModelViewSet):
     serializer_class = GradeSerializer
     queryset = Grade.objects.all()
-    permission_classes = [IsAuthenticatedAndTeacherForWrites]
+    permission_classes = [GradePermissions]
     
     def get_queryset(self):
         user = self.request.user
@@ -229,8 +254,16 @@ class GradeViewSet(viewsets.ModelViewSet):
         exam = serializer.validated_data['exam']
         student = serializer.validated_data['student']
 
-        if exam.teacher != teacher:
-            raise PermissionDenied(_("لا يمكنك إنشاء علامات لاختبار لا تخصك."))
+        is_teacher_for_this_student_and_subject = ClassSchedule.objects.filter(
+            teacher=teacher,
+            subject=exam.subject,
+            section=student.section,
+            academic_year=exam.academic_year,
+            academic_term=exam.academic_term
+        ).exists()
+
+        if not is_teacher_for_this_student_and_subject:
+            raise PermissionDenied(_("لا يمكنك إضافة علامات لهذا الطالب. يجب أن تكون معلم المادة في شعبة هذا الطالب."))
 
         if not exam.is_conducted:
             raise ValidationError({
@@ -245,17 +278,18 @@ class GradeViewSet(viewsets.ModelViewSet):
             raise ValidationError({
                 "student": _("الطالب لا ينتمي إلى الصف المستهدف لهذا الاختبار.")
             })
+        if exam.stream_type and student.section.stream_type != exam.stream_type:
+            raise ValidationError({
+                "student": _("الطالب لا ينتمي إلى نوع التخصص المستهدف لهذا الاختبار.")
+            })
         
         serializer.validated_data['graded_at'] = timezone.now()
         serializer.save()
 
     def perform_update(self, serializer):
-        teacher = self.request.user.teacher_profile
         exam = serializer.validated_data.get('exam', self.get_object().exam)
         student = serializer.validated_data['student']
 
-        if exam.teacher != teacher:
-            self.permission_denied(self.request, message=_("لا يمكنك تعديل علامات لاختبار لا تخصك."))
         if exam.target_section and student.section != exam.target_section:
             raise ValidationError({
                 "student": _("الطالب لا ينتمي إلى الشعبة المستهدفة لهذا الاختبار.")
@@ -405,7 +439,6 @@ class SubjectAverageView(APIView):
         academic_year_id = request.query_params.get('academic_year_id')
         academic_term_id = request.query_params.get('academic_term_id')
 
-        # الطالب لا يُسمح له بتحديد student_id؛ نستخدم معرفه الذاتي
         if user.is_student():
             try:
                 student_id = user.student.pk

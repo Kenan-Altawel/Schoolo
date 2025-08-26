@@ -73,3 +73,30 @@ class IsAuthenticatedAndTeacherForWrites(permissions.BasePermission):
         
         else:
             return IsTeacher().has_permission(request, view)
+        
+
+class GradePermissions(permissions.BasePermission):
+    """
+    يحدد الصلاحيات على نموذج العلامات (Grade) بناءً على دور المستخدم ونوع العملية.
+    
+    - عرض (GET): متاح لجميع المستخدمين الموثقين.
+    - إضافة (POST): متاح للمدرسين فقط.
+    - تعديل/حذف (PUT/PATCH/DELETE): متاح للمديرين/المشرفين فقط.
+    """
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        if view.action == 'create':
+            return request.user.is_teacher()
+        
+        if view.action in ['update', 'partial_update', 'destroy']:
+            return request.user.is_admin() or request.user.is_superuser
+        
+        return False
+
+    def has_object_permission(self, request, view, obj):
+        return self.has_permission(request, view)
