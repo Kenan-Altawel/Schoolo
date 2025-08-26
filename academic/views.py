@@ -6,6 +6,7 @@ from .serializers import AcademicYearSerializer, AcademicTermSerializer
 from .serializers import TimeSlotSerializer, DayOfWeekSerializer
 from rest_framework.response import Response
 from rest_framework import status
+from django.db.models import Q
 
 class CustomPermission(permissions.BasePermission):
    
@@ -60,3 +61,14 @@ class DayOfWeekViewSet(viewsets.ModelViewSet):
     queryset = DayOfWeek.objects.all()
     serializer_class = DayOfWeekSerializer
     permission_classes = [CustomPermission]
+
+    def get_queryset(self):
+        queryset = DayOfWeek.objects.all()
+        is_school_day = self.request.query_params.get('is_school_day')
+        query_params_filters = Q()
+
+        if is_school_day is not None: 
+            is_school_day = is_school_day.lower() in ['true', '1', 't', 'y']
+            query_params_filters &= Q(is_school_day=is_school_day)
+        queryset = queryset.filter(query_params_filters).distinct()
+        return queryset
