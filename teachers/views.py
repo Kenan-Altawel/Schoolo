@@ -94,7 +94,7 @@ class ManagerTeacherUpdateView(generics.RetrieveUpdateAPIView):
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response({"detail": "تم تحديث بيانات المعلم بنجاح"}, status=status.HTTP_200_OK)
+        return Response({"detail": "تم تحديث بيانات المستخدم بنجاح"}, status=status.HTTP_200_OK)
     
 
 class ManagerTeacherDeleteView(generics.DestroyAPIView):
@@ -107,10 +107,10 @@ class ManagerTeacherDeleteView(generics.DestroyAPIView):
             instance.delete()
             user.delete()
             
-            return Response({"detail": "تم حذف المعلم بنجاح"}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"detail": "تم حذف المستخدم بنجاح"}, status=status.HTTP_204_NO_CONTENT)
         
         except Teacher.DoesNotExist:
-            return Response({"detail": "المعلم غير موجود"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "المستخدم غير موجود"}, status=status.HTTP_404_NOT_FOUND)
         
         except Exception as e:
             return Response({"detail": f"حدث خطأ أثناء الحذف: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
