@@ -44,6 +44,7 @@ class TeacherProfileUpdateSerializer(serializers.ModelSerializer):
     
 
 class TeacherListSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='user.id')
     first_name = serializers.CharField(source='user.first_name', required=False)
     last_name = serializers.CharField(source='user.last_name', required=False)
     is_active = serializers.BooleanField(source='user.is_active', required=False)
@@ -52,7 +53,7 @@ class TeacherListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
         fields = [
-            'first_name', 'last_name', 'phone_number', 'is_active',
+            'id','first_name', 'last_name', 'phone_number', 'is_active',
             'address', 'specialization'
         ]
         
@@ -68,6 +69,7 @@ class TeacherSubjectSerializer(serializers.ModelSerializer):
     
 
 class ManagerTeacherUpdateSerializer(serializers.ModelSerializer):
+    
     first_name = serializers.CharField(source='user.first_name', required=False)
     last_name = serializers.CharField(source='user.last_name', required=False)
     is_active = serializers.BooleanField(source='user.is_active', required=False)
