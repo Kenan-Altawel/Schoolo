@@ -98,14 +98,14 @@ class ExamSerializer(serializers.ModelSerializer):
 class GradeSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='student.user.get_full_name', read_only=True)
     exam_subject_name = serializers.CharField(source='exam.subject.name', read_only=True)
-    exam_type = serializers.CharField(source='exam.get_exam_type_display', read_only=True)
+    exam_type = serializers.CharField(source='exam.exam_type', read_only=True)
     exam_total_marks = serializers.DecimalField(source='exam.total_marks', max_digits=5, decimal_places=2, read_only=True)
 
     class Meta:
         model = Grade
         fields = [
-            'id', 'student', 'student_name', 'exam', 'exam_subject_name',
-            'exam_type', 'exam_total_marks', 'score', 'graded_at'
+            'id', 'student', 'student_name', 'exam', 'exam_subject_name','exam_type',
+             'exam_total_marks', 'score', 'graded_at'
         ]
         read_only_fields = ['id', 'student_name', 'exam_subject_name', 'exam_type', 'exam_total_marks', 'graded_at']
 
