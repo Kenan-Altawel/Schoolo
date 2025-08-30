@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
     'schoolProfile',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -165,7 +166,7 @@ WSGI_APPLICATION = 'Schoolo.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'schoolo3',
+        'NAME': 'school',
         'USER': 'nouran',
         'PASSWORD': 'nourankandar',
         'HOST': 'localhost',          

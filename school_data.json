@@ -1,0 +1,1714 @@
+[
+  {
+    "model": "academic.academicyear",
+    "pk": 1,
+    "fields": {
+      "name": "2024-2025",
+      "start_date": "2024-09-01",
+      "end_date": "2025-06-30",
+      "is_current": true,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "academic.academicterm",
+    "pk": 1,
+    "fields": {
+      "academic_year": 1,
+      "name": "الفصل الدراسي الأول",
+      "start_date": "2024-09-01",
+      "end_date": "2024-12-31",
+      "is_current": true,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "classes.class",
+    "pk": 1,
+    "fields": {
+      "name": "الصف الأول",
+      "description": "الصف الأول الابتدائي",
+      "next_class": 2,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "classes.class",
+    "pk": 2,
+    "fields": {
+      "name": "الصف الثاني",
+      "description": "الصف الثاني الابتدائي",
+      "next_class": 3,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "classes.class",
+    "pk": 3,
+    "fields": {
+      "name": "الصف الثالث",
+      "description": "الصف الثالث الابتدائي",
+      "next_class": null,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "classes.section",
+    "pk": 1,
+    "fields": {
+      "name": "شعبة أ",
+      "stream_type": "General",
+      "academic_year": 1,
+      "class_obj": 1,
+      "capacity": 25,
+      "is_active": true,
+      "activation_date": "2024-09-01T00:00:00Z",
+      "deactivation_date": null,
+      "students_count": 17,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "classes.section",
+    "pk": 2,
+    "fields": {
+      "name": "شعبة ب",
+      "stream_type": "General",
+      "academic_year": 1,
+      "class_obj": 1,
+      "capacity": 25,
+      "is_active": true,
+      "activation_date": "2024-09-01T00:00:00Z",
+      "deactivation_date": null,
+      "students_count": 16,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "classes.section",
+    "pk": 3,
+    "fields": {
+      "name": "شعبة أ",
+      "stream_type": "General",
+      "academic_year": 1,
+      "class_obj": 2,
+      "capacity": 25,
+      "is_active": true,
+      "activation_date": "2024-09-01T00:00:00Z",
+      "deactivation_date": null,
+      "students_count": 12,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "classes.section",
+    "pk": 4,
+    "fields": {
+      "name": "شعبة ب",
+      "stream_type": "General",
+      "academic_year": 1,
+      "class_obj": 2,
+      "capacity": 25,
+      "is_active": true,
+      "activation_date": "2024-09-01T00:00:00Z",
+      "deactivation_date": null,
+      "students_count": 5,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "classes.section",
+    "pk": 5,
+    "fields": {
+      "name": "شعبة أ",
+      "stream_type": "General",
+      "academic_year": 1,
+      "class_obj": 3,
+      "capacity": 25,
+      "is_active": true,
+      "activation_date": "2024-09-01T00:00:00Z",
+      "deactivation_date": null,
+      "students_count": 0,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "subject.subject",
+    "pk": 1,
+    "fields": {
+      "class_obj": 1,
+      "section": null,
+      "stream_type": "General",
+      "name": "اللغة العربية",
+      "description": "مادة اللغة العربية للصف الأول",
+      "is_active": true,
+      "pdf_file": "",
+      "icon": null,
+      "default_weekly_lessons": 5,
+      "academic_year": 1,
+      "academic_term": 1,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "subject.subject",
+    "pk": 2,
+    "fields": {
+      "class_obj": 1,
+      "section": null,
+      "stream_type": "General",
+      "name": "الرياضيات",
+      "description": "مادة الرياضيات للصف الأول",
+      "is_active": true,
+      "pdf_file": "",
+      "icon": null,
+      "default_weekly_lessons": 5,
+      "academic_year": 1,
+      "academic_term": 1,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "subject.subject",
+    "pk": 3,
+    "fields": {
+      "class_obj": 1,
+      "section": null,
+      "stream_type": "General",
+      "name": "العلوم",
+      "description": "مادة العلوم للصف الأول",
+      "is_active": true,
+      "pdf_file": "",
+      "icon": null,
+      "default_weekly_lessons": 3,
+      "academic_year": 1,
+      "academic_term": 1,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "subject.subject",
+    "pk": 4,
+    "fields": {
+      "class_obj": 2,
+      "section": null,
+      "stream_type": "General",
+      "name": "اللغة العربية",
+      "description": "مادة اللغة العربية للصف الثاني",
+      "is_active": true,
+      "pdf_file": "",
+      "icon": null,
+      "default_weekly_lessons": 5,
+      "academic_year": 1,
+      "academic_term": 1,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "subject.subject",
+    "pk": 5,
+    "fields": {
+      "class_obj": 2,
+      "section": null,
+      "stream_type": "General",
+      "name": "الرياضيات",
+      "description": "مادة الرياضيات للصف الثاني",
+      "is_active": true,
+      "pdf_file": "",
+      "icon": null,
+      "default_weekly_lessons": 5,
+      "academic_year": 1,
+      "academic_term": 1,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "subject.subject",
+    "pk": 6,
+    "fields": {
+      "class_obj": 2,
+      "section": null,
+      "stream_type": "General",
+      "name": "العلوم",
+      "description": "مادة العلوم للصف الثاني",
+      "is_active": true,
+      "pdf_file": "",
+      "icon": null,
+      "default_weekly_lessons": 3,
+      "academic_year": 1,
+      "academic_term": 1,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "subject.subject",
+    "pk": 7,
+    "fields": {
+      "class_obj": 3,
+      "section": null,
+      "stream_type": "General",
+      "name": "اللغة العربية",
+      "description": "مادة اللغة العربية للصف الثالث",
+      "is_active": true,
+      "pdf_file": "",
+      "icon": null,
+      "default_weekly_lessons": 5,
+      "academic_year": 1,
+      "academic_term": 1,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "subject.subject",
+    "pk": 8,
+    "fields": {
+      "class_obj": 3,
+      "section": null,
+      "stream_type": "General",
+      "name": "الرياضيات",
+      "description": "مادة الرياضيات للصف الثالث",
+      "is_active": true,
+      "pdf_file": "",
+      "icon": null,
+      "default_weekly_lessons": 5,
+      "academic_year": 1,
+      "academic_term": 1,
+      "created_at": "2024-09-01T00:00:00Z",
+      "updated_at": "2024-09-01T00:00:00Z"
+    }
+  },
+     {
+     "model": "subject.subject",
+     "pk": 9,
+     "fields": {
+       "class_obj": 3,
+       "section": null,
+       "stream_type": "General",
+       "name": "العلوم",
+       "description": "مادة العلوم للصف الثالث",
+       "is_active": true,
+       "pdf_file": "",
+       "icon": null,
+       "default_weekly_lessons": 3,
+       "academic_year": 1,
+       "academic_term": 1,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 101,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$teacher1$hash",
+       "phone_number": "0911111111",
+       "first_name": "أحمد",
+       "last_name": "محمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [2],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 102,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$teacher2$hash",
+       "phone_number": "0922222222",
+       "first_name": "فاطمة",
+       "last_name": "علي",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [2],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 103,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$teacher3$hash",
+       "phone_number": "0933333333",
+       "first_name": "محمد",
+       "last_name": "حسن",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [2],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "teachers.teacher",
+     "pk": 101,
+     "fields": {
+       "user": 101,
+       "address": "دمشق، سوريا",
+       "specialization": "اللغة العربية",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "teachers.teacher",
+     "pk": 102,
+     "fields": {
+       "user": 102,
+       "address": "دمشق، سوريا",
+       "specialization": "الرياضيات",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "teachers.teacher",
+     "pk": 103,
+     "fields": {
+       "user": 103,
+       "address": "دمشق، سوريا",
+       "specialization": "العلوم",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "subject.teachersubject",
+     "pk": 1,
+     "fields": {
+       "teacher": 101,
+       "subject": 1,
+       "weekly_hours": 5,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "subject.teachersubject",
+     "pk": 2,
+     "fields": {
+       "teacher": 101,
+       "subject": 4,
+       "weekly_hours": 5,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "subject.teachersubject",
+     "pk": 3,
+     "fields": {
+       "teacher": 101,
+       "subject": 7,
+       "weekly_hours": 5,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "subject.teachersubject",
+     "pk": 4,
+     "fields": {
+       "teacher": 102,
+       "subject": 2,
+       "weekly_hours": 5,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "subject.teachersubject",
+     "pk": 5,
+     "fields": {
+       "teacher": 102,
+       "subject": 5,
+       "weekly_hours": 5,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "subject.teachersubject",
+     "pk": 6,
+     "fields": {
+       "teacher": 102,
+       "subject": 8,
+       "weekly_hours": 5,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "subject.teachersubject",
+     "pk": 7,
+     "fields": {
+       "teacher": 103,
+       "subject": 3,
+       "weekly_hours": 3,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "subject.teachersubject",
+     "pk": 8,
+     "fields": {
+       "teacher": 103,
+       "subject": 6,
+       "weekly_hours": 3,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "subject.teachersubject",
+     "pk": 9,
+     "fields": {
+       "teacher": 103,
+       "subject": 9,
+       "weekly_hours": 3,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 201,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student1$hash",
+       "phone_number": "0940000001",
+       "first_name": "علي",
+       "last_name": "أحمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 201,
+     "fields": {
+       "user": 201,
+       "section": 1,
+       "enrollment_number": "2024-001",
+       "father_name": "أحمد علي",
+       "gender": "Male",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0991111111",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 1,
+       "date_of_birth": "2017-05-15",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 202,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student2$hash",
+       "phone_number": "0940000002",
+       "first_name": "فاطمة",
+       "last_name": "محمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 202,
+     "fields": {
+       "user": 202,
+       "section": 1,
+       "enrollment_number": "2024-002",
+       "father_name": "محمد فاطمة",
+       "gender": "Female",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0992222222",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 1,
+       "date_of_birth": "2017-08-20",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "grading.exam",
+     "pk": 1,
+     "fields": {
+       "subject": 1,
+       "academic_year": 1,
+       "academic_term": 1,
+       "exam_type": "midterm",
+       "exam_date": "2024-10-15",
+       "total_marks": "50.00",
+       "teacher": 101,
+       "target_class": 1,
+       "target_section": null,
+       "is_conducted": true,
+       "stream_type": null,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "grading.exam",
+     "pk": 2,
+     "fields": {
+       "subject": 2,
+       "academic_year": 1,
+       "academic_term": 1,
+       "exam_type": "midterm",
+       "exam_date": "2024-10-20",
+       "total_marks": "50.00",
+       "teacher": 102,
+       "target_class": 1,
+       "target_section": null,
+       "is_conducted": true,
+       "stream_type": null,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "grading.exam",
+     "pk": 3,
+     "fields": {
+       "subject": 3,
+       "academic_year": 1,
+       "academic_term": 1,
+       "exam_type": "midterm",
+       "exam_date": "2024-10-25",
+       "total_marks": "50.00",
+       "teacher": 103,
+       "target_class": 1,
+       "target_section": null,
+       "is_conducted": true,
+       "stream_type": null,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "grading.grade",
+     "pk": 1,
+     "fields": {
+       "student": 201,
+       "exam": 1,
+       "score": "45.00",
+       "graded_at": "2024-10-16T00:00:00Z",
+       "created_at": "2024-10-16T00:00:00Z",
+       "updated_at": "2024-10-16T00:00:00Z"
+     }
+   },
+   {
+     "model": "grading.grade",
+     "pk": 2,
+     "fields": {
+       "student": 201,
+       "exam": 2,
+       "score": "42.00",
+       "graded_at": "2024-10-21T00:00:00Z",
+       "created_at": "2024-10-21T00:00:00Z",
+       "updated_at": "2024-10-21T00:00:00Z"
+     }
+   },
+   {
+     "model": "grading.grade",
+     "pk": 3,
+     "fields": {
+       "student": 201,
+       "exam": 3,
+       "score": "38.00",
+       "graded_at": "2024-10-26T00:00:00Z",
+       "created_at": "2024-10-26T00:00:00Z",
+       "updated_at": "2024-10-26T00:00:00Z"
+     }
+   },
+   {
+     "model": "grading.grade",
+     "pk": 4,
+     "fields": {
+       "student": 202,
+       "exam": 1,
+       "score": "48.00",
+       "graded_at": "2024-10-16T00:00:00Z",
+       "created_at": "2024-10-16T00:00:00Z",
+       "updated_at": "2024-10-16T00:00:00Z"
+     }
+   },
+   {
+     "model": "grading.grade",
+     "pk": 5,
+     "fields": {
+       "student": 202,
+       "exam": 2,
+       "score": "46.00",
+       "graded_at": "2024-10-21T00:00:00Z",
+       "created_at": "2024-10-21T00:00:00Z",
+       "updated_at": "2024-10-21T00:00:00Z"
+     }
+   },
+   {
+     "model": "grading.grade",
+     "pk": 6,
+     "fields": {
+       "student": 202,
+       "exam": 3,
+       "score": "44.00",
+       "graded_at": "2024-10-26T00:00:00Z",
+       "created_at": "2024-10-26T00:00:00Z",
+       "updated_at": "2024-10-26T00:00:00Z"
+     }
+   },
+   {
+     "model": "attendance.attendance",
+     "pk": 1,
+     "fields": {
+       "student": 201,
+       "date": "2024-09-02",
+       "status": "present",
+       "recorded_by": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "created_at": "2024-09-02T00:00:00Z",
+       "updated_at": "2024-09-02T00:00:00Z"
+     }
+   },
+   {
+     "model": "attendance.attendance",
+     "pk": 2,
+     "fields": {
+       "student": 201,
+       "date": "2024-09-03",
+       "status": "present",
+       "recorded_by": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "created_at": "2024-09-03T00:00:00Z",
+       "updated_at": "2024-09-03T00:00:00Z"
+     }
+   },
+   {
+     "model": "attendance.attendance",
+     "pk": 3,
+     "fields": {
+       "student": 201,
+       "date": "2024-09-04",
+       "status": "absent",
+       "recorded_by": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "created_at": "2024-09-04T00:00:00Z",
+       "updated_at": "2024-09-04T00:00:00Z"
+     }
+   },
+   {
+     "model": "attendance.attendance",
+     "pk": 4,
+     "fields": {
+       "student": 202,
+       "date": "2024-09-02",
+       "status": "present",
+       "recorded_by": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "created_at": "2024-09-02T00:00:00Z",
+       "updated_at": "2024-09-02T00:00:00Z"
+     }
+   },
+   {
+     "model": "attendance.attendance",
+     "pk": 5,
+     "fields": {
+       "student": 202,
+       "date": "2024-09-03",
+       "status": "present",
+       "recorded_by": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "created_at": "2024-09-03T00:00:00Z",
+       "updated_at": "2024-09-03T00:00:00Z"
+     }
+   },
+   {
+     "model": "attendance.attendance",
+     "pk": 6,
+     "fields": {
+       "student": 202,
+       "date": "2024-09-04",
+       "status": "present",
+       "recorded_by": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "created_at": "2024-09-04T00:00:00Z",
+       "updated_at": "2024-09-04T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 203,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student3$hash",
+       "phone_number": "0940000003",
+       "first_name": "محمد",
+       "last_name": "علي",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 203,
+     "fields": {
+       "user": 203,
+       "section": 1,
+       "enrollment_number": "2024-003",
+       "father_name": "علي محمد",
+       "gender": "Male",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0993333333",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 1,
+       "date_of_birth": "2017-03-10",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 204,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student4$hash",
+       "phone_number": "0940000004",
+       "first_name": "سارة",
+       "last_name": "أحمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 204,
+     "fields": {
+       "user": 204,
+       "section": 1,
+       "enrollment_number": "2024-004",
+       "father_name": "أحمد سارة",
+       "gender": "Female",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0994444444",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 1,
+       "date_of_birth": "2017-07-22",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 205,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student5$hash",
+       "phone_number": "0940000005",
+       "first_name": "حسن",
+       "last_name": "محمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 205,
+     "fields": {
+       "user": 205,
+       "section": 2,
+       "enrollment_number": "2024-005",
+       "father_name": "محمد حسن",
+       "gender": "Male",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0995555555",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 1,
+       "date_of_birth": "2017-01-15",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 206,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student6$hash",
+       "phone_number": "0940000006",
+       "first_name": "ليلى",
+       "last_name": "علي",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 206,
+     "fields": {
+       "user": 206,
+       "section": 2,
+       "enrollment_number": "2024-006",
+       "father_name": "علي ليلى",
+       "gender": "Female",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0996666666",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 1,
+       "date_of_birth": "2017-11-08",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 207,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student7$hash",
+       "phone_number": "0940000007",
+       "first_name": "أحمد",
+       "last_name": "حسن",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 207,
+     "fields": {
+       "user": 207,
+       "section": 2,
+       "enrollment_number": "2024-007",
+       "father_name": "حسن أحمد",
+       "gender": "Male",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0997777777",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 1,
+       "date_of_birth": "2017-04-12",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 208,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student8$hash",
+       "phone_number": "0940000008",
+       "first_name": "نور",
+       "last_name": "محمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 208,
+     "fields": {
+       "user": 208,
+       "section": 2,
+       "enrollment_number": "2024-008",
+       "father_name": "محمد نور",
+       "gender": "Female",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0998888888",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 1,
+       "date_of_birth": "2017-09-30",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 209,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student9$hash",
+       "phone_number": "0940000009",
+       "first_name": "عمر",
+       "last_name": "أحمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 209,
+     "fields": {
+       "user": 209,
+       "section": 3,
+       "enrollment_number": "2024-009",
+       "father_name": "أحمد عمر",
+       "gender": "Male",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0999999999",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 2,
+       "date_of_birth": "2016-06-18",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 210,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student10$hash",
+       "phone_number": "0940000010",
+       "first_name": "مريم",
+       "last_name": "علي",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 210,
+     "fields": {
+       "user": 210,
+       "section": 3,
+       "enrollment_number": "2024-010",
+       "father_name": "علي مريم",
+       "gender": "Female",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0990000000",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 2,
+       "date_of_birth": "2016-12-03",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 211,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student11$hash",
+       "phone_number": "0940000011",
+       "first_name": "يوسف",
+       "last_name": "محمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 211,
+     "fields": {
+       "user": 211,
+       "section": 3,
+       "enrollment_number": "2024-011",
+       "father_name": "محمد يوسف",
+       "gender": "Male",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0991111112",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 2,
+       "date_of_birth": "2016-08-25",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 212,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student12$hash",
+       "phone_number": "0940000012",
+       "first_name": "زينب",
+       "last_name": "أحمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 212,
+     "fields": {
+       "user": 212,
+       "section": 3,
+       "enrollment_number": "2024-012",
+       "father_name": "أحمد زينب",
+       "gender": "Female",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0992222223",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 2,
+       "date_of_birth": "2016-03-14",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 213,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student13$hash",
+       "phone_number": "0940000013",
+       "first_name": "خالد",
+       "last_name": "علي",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 213,
+     "fields": {
+       "user": 213,
+       "section": 4,
+       "enrollment_number": "2024-013",
+       "father_name": "علي خالد",
+       "gender": "Male",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0993333334",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 2,
+       "date_of_birth": "2016-10-07",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 214,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student14$hash",
+       "phone_number": "0940000014",
+       "first_name": "آية",
+       "last_name": "محمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 214,
+     "fields": {
+       "user": 214,
+       "section": 4,
+       "enrollment_number": "2024-014",
+       "father_name": "محمد آية",
+       "gender": "Female",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0994444445",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 2,
+       "date_of_birth": "2016-05-20",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 215,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student15$hash",
+       "phone_number": "0940000015",
+       "first_name": "عبدالله",
+       "last_name": "أحمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 215,
+     "fields": {
+       "user": 215,
+       "section": 4,
+       "enrollment_number": "2024-015",
+       "father_name": "أحمد عبدالله",
+       "gender": "Male",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0995555556",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 2,
+       "date_of_birth": "2016-02-11",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 216,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student16$hash",
+       "phone_number": "0940000016",
+       "first_name": "رنا",
+       "last_name": "علي",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 216,
+     "fields": {
+       "user": 216,
+       "section": 4,
+       "enrollment_number": "2024-016",
+       "father_name": "علي رنا",
+       "gender": "Female",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0996666667",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 2,
+       "date_of_birth": "2016-07-09",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 217,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student17$hash",
+       "phone_number": "0940000017",
+       "first_name": "محمد",
+       "last_name": "حسن",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 217,
+     "fields": {
+       "user": 217,
+       "section": 4,
+       "enrollment_number": "2024-017",
+       "father_name": "حسن محمد",
+       "gender": "Male",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0997777778",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 2,
+       "date_of_birth": "2016-12-28",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "accounts.user",
+     "pk": 218,
+     "fields": {
+       "password": "pbkdf2_sha256$1000000$student18$hash",
+       "phone_number": "0940000018",
+       "first_name": "فاطمة",
+       "last_name": "أحمد",
+       "is_active": true,
+       "is_staff": false,
+       "is_superuser": false,
+       "is_phone_verified": true,
+       "groups": [1],
+       "user_permissions": [],
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "students.student",
+     "pk": 218,
+     "fields": {
+       "user": 218,
+       "section": 4,
+       "enrollment_number": "2024-018",
+       "father_name": "أحمد فاطمة",
+       "gender": "Female",
+       "address": "دمشق، سوريا",
+       "parent_phone": "0998888889",
+       "student_status": "New",
+       "register_status": "Accepted",
+       "student_class": 2,
+       "date_of_birth": "2016-04-16",
+       "image": "",
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "academic.timeslot",
+     "pk": 1,
+     "fields": {
+       "slot_number": 1,
+       "name": "الحصة الأولى",
+       "start_time": "08:00:00",
+       "end_time": "08:45:00",
+       "is_break": false,
+       "created_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "academic.timeslot",
+     "pk": 2,
+     "fields": {
+       "slot_number": 2,
+       "name": "الحصة الثانية",
+       "start_time": "08:45:00",
+       "end_time": "09:30:00",
+       "is_break": false,
+       "created_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "academic.timeslot",
+     "pk": 3,
+     "fields": {
+       "slot_number": 3,
+       "name": "الحصة الثالثة",
+       "start_time": "09:30:00",
+       "end_time": "10:15:00",
+       "is_break": false,
+       "created_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "academic.timeslot",
+     "pk": 4,
+     "fields": {
+       "slot_number": 4,
+       "name": "الحصة الرابعة",
+       "start_time": "10:15:00",
+       "end_time": "11:00:00",
+       "is_break": false,
+       "created_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "academic.timeslot",
+     "pk": 5,
+     "fields": {
+       "slot_number": 5,
+       "name": "الحصة الخامسة",
+       "start_time": "11:00:00",
+       "end_time": "11:45:00",
+       "is_break": false,
+       "created_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 1,
+     "fields": {
+       "subject": 1,
+       "section": 1,
+       "teacher": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 1,
+       "time_slot": 1,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 2,
+     "fields": {
+       "subject": 2,
+       "section": 1,
+       "teacher": 102,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 1,
+       "time_slot": 2,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 3,
+     "fields": {
+       "subject": 3,
+       "section": 1,
+       "teacher": 103,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 1,
+       "time_slot": 3,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 4,
+     "fields": {
+       "subject": 1,
+       "section": 1,
+       "teacher": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 2,
+       "time_slot": 1,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 5,
+     "fields": {
+       "subject": 2,
+       "section": 1,
+       "teacher": 102,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 2,
+       "time_slot": 2,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 6,
+     "fields": {
+       "subject": 1,
+       "section": 2,
+       "teacher": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 1,
+       "time_slot": 4,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 7,
+     "fields": {
+       "subject": 2,
+       "section": 2,
+       "teacher": 102,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 1,
+       "time_slot": 5,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 8,
+     "fields": {
+       "subject": 3,
+       "section": 2,
+       "teacher": 103,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 2,
+       "time_slot": 3,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 9,
+     "fields": {
+       "subject": 4,
+       "section": 3,
+       "teacher": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 3,
+       "time_slot": 1,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 10,
+     "fields": {
+       "subject": 5,
+       "section": 3,
+       "teacher": 102,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 3,
+       "time_slot": 2,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 11,
+     "fields": {
+       "subject": 6,
+       "section": 3,
+       "teacher": 103,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 3,
+       "time_slot": 3,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 12,
+     "fields": {
+       "subject": 4,
+       "section": 4,
+       "teacher": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 4,
+       "time_slot": 1,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 13,
+     "fields": {
+       "subject": 5,
+       "section": 4,
+       "teacher": 102,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 4,
+       "time_slot": 2,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 14,
+     "fields": {
+       "subject": 6,
+       "section": 4,
+       "teacher": 103,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 4,
+       "time_slot": 3,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 15,
+     "fields": {
+       "subject": 7,
+       "section": 5,
+       "teacher": 101,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 5,
+       "time_slot": 1,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 16,
+     "fields": {
+       "subject": 8,
+       "section": 5,
+       "teacher": 102,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 5,
+       "time_slot": 2,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   },
+   {
+     "model": "schedules.classschedule",
+     "pk": 17,
+     "fields": {
+       "subject": 9,
+       "section": 5,
+       "teacher": 103,
+       "academic_year": 1,
+       "academic_term": 1,
+       "day_of_week": 5,
+       "time_slot": 3,
+       "created_at": "2024-09-01T00:00:00Z",
+       "updated_at": "2024-09-01T00:00:00Z"
+     }
+   }
+ ]
