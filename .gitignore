@@ -17,3 +17,6 @@ venv/
 # Log files
 *.log
 
+
+backup.json
+school_data.json
